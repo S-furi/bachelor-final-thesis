@@ -1,5 +1,5 @@
 # Bachelor Final Thesis
-This repository contains the Latex code for my bachelor degree thesis titled:
+This repository contains the Latex code of my bachelor degree thesis titled:
 > Efficient Access and Control of Complex Software Systems through GraphQL
 
 and it deals with the implementation of GraphQL APIs on top of 
