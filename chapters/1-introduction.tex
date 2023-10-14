@@ -38,6 +38,32 @@ Alchemist~\cite{alchemist} è un simulatore stocastico general-purpose, estensib
             \item Il valore di ogni condizione.
             \item Una equazione di frequenza, che combina la frequenza statica e il valore delle condizioni, restituendo una ``frequenza istantanea''.
         \end{enumerate}
+    \item \textbf{Condition}: funzione che prende in input l'ambiente corrente e restituisce un valore booleano e un numero: se la condizione non è verificata, la reazione associatagli non verrà eseguita.
+        Il numero restituito in output può influenzare la velocità della reazione, in base alla reazione e alla sua distribuzione temporale.
+    \item \textbf{Action}: modella un cambiamento all'interno dell'ambiente.
+\end{itemize}
+
+Il meta-modello di Alchemist pu\aacc{o} essere riassunto nella \Cref{fig:alchemist-metamodel}
+
+%----------------------------------------%
+\centerimagesource{figures/alchemist-model.png}{Meta-modello di Alchemist}{alchemist-metamodel}{1}{https://alchemistsimulator.github.io/explanation/metamodel/}
+%----------------------------------------%
+
+\paragraph{Incarnation} La chiave dell'estensibilit\aacc{a} di Alchemist risiede nella rappresentazione astratta di molecole e concentrazioni. Anche
+\begin{enumerate*}[label=(\roman*)]
+    \item un identificatore generico e
+    \item un certo dato, di un qualche tipo.
+\end{enumerate*}
+All'interno di Alchemist una \textit{Incarnation} include una definizione per il tipo delle concentrazioni, un eventuale insieme di specifiche
+condizioni, azione e (raramente) un ambiente e reazioni che operano su quei determinati tipi. In altre parole, un'incarnazione \aacc{e} una
+istanza concreta del meta-modello di Alchemist.
+%
+Diverse \textit{Incarnation} possono modellare universi completamente differenti. Allo stato attuale, Alchemist viene distribuito con le seguenti incarnazioni:
+\begin{itemize}
+    \item \textbf{SAPERE Incarnation}~\cite{sapere}
+    \item \textbf{Protelis Incarnation}~\cite{protelis}
+    \item \textbf{Biochemistry Incarnation}\footnote{https://alchemistsimulator.github.io/explanation/biochemistry/}
+    \item \textbf{SCAFI Incarnation}~\cite{CASADEI2022101248}
 \end{itemize}
 
 \subsection{Interazione coi Simulatori}\label{ssec:sim-interactions}
