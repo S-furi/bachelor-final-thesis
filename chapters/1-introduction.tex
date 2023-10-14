@@ -13,9 +13,33 @@ servizi di controllo essenziali per lo sviluppo di applicativi attraverso le API
 Attraverso questo nuovo modulo, si mira a fornire un accesso standardizzato ed efficiente alle componenti di un sistema software complesso come Alchemist, facilitando così la manipolazione e il controllo
 delle sue funzionalità.
 
-
 \section{Contesto}\label{sec:context}
-\subsection{Simulazione}\label{ssec:alchemist} ~\cite{alchemist}
+\subsection{Simulazione}\label{ssec:alchemist}
+Alchemist~\cite{alchemist} è un simulatore stocastico general-purpose, estensibile ed open-source sviluppato dall'Università di Bologna. Permette la simulazione di scenari relativi al
+\textit{pervasive}, \textit{aggregate} e \textit{nature-inspired computing}.
+
+\paragraph{Meta-modello} Gli elementi principali che compongono Alchemist sono\footnote{https://alchemistsimulator.github.io/}:
+\begin{itemize}
+    \item \textbf{Molecule}: denominazione assegnata ad un dato specifico.
+    \item \textbf{Concentration}: il valore assegnato ad una particolare molecola.
+    \item \textbf{Node}: contenitore al cui interno risiedono molecole e reazioni, contenuto a sua volta nell'ambiente.
+    \item \textbf{Environment}: astrazione del concetto di spazio all'interno di Alchemist. Contiene tutti i nodi ed è in grado di comunicare:
+        \begin{enumerate}
+            \item La posizione nello spazio dei nodi.
+            \item La distanza tra due nodi.
+            \item Muovere all'interno dello spazio i nodi.
+        \end{enumerate}
+    \item \textbf{Linking Rule}: funzione dello stato attuale dell'ambiente che associa ogni nodo ad un vicinato.
+    \item \textbf{Neighborhood}: entità composta da un nodo (centro) e un insieme di altri nodi (vicini).
+    \item \textbf{Reaction}: rappresenta ogni evento che può cambiare lo stato dell'ambiente. È definita da un insieme, potenzialmente vuoto di condizioni, una o più azioni e una distribuzione temporale.
+        La frequenza con cui può accadere dipende da:
+        \begin{enumerate}
+            \item Un parametro statico di frequenza.
+            \item Il valore di ogni condizione.
+            \item Una equazione di frequenza, che combina la frequenza statica e il valore delle condizioni, restituendo una ``frequenza istantanea''.
+        \end{enumerate}
+\end{itemize}
+
 \subsection{Interazione coi Simulatori}\label{ssec:sim-interactions}
 Allo stato attuale, l'interazione con le simulazioni avviene principalmente mediante lo sviluppo di codice all'interno della \ac{JVM} che comunichi direttamente con il modello di Alchemist.
 Questo porta allo sviluppo di moduli aggiuntivi coerenti con l'architettura generale del sistema, ma è evidente come la loro implementazione non può astrarre al di la delle interfacce fornite
