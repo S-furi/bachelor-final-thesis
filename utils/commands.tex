@@ -1,0 +1,27 @@
+%!TEX root = ../thesis-main.tex
+
+\newcommand{\aacc}[1]{\`{#1}}
+\newcommand{\gacc}[1]{\'{#1}}
+
+\newcommand{\centerimage}[4] {
+	\begin{figure}[htb]
+		\begin{center}
+			\includegraphics[width=#4\linewidth]{#1}
+			\caption{#2}
+			\label{fig:#3}
+		\end{center}
+	\end{figure}
+}
+
+\newcommand{\centerimagesource}[5] {
+	\begin{figure}[htb]
+		\begin{center}
+            \def\stackalignment{r}
+            \stackunder{\includegraphics[width=#4\linewidth]{#1}}%
+            {\scriptsize%
+            Source: \url{#5}}
+			\caption{#2}
+			\label{fig:#3}
+		\end{center}
+	\end{figure}
+}

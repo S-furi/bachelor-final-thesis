@@ -1,9 +1,174 @@
 %!TEX root = ../thesis-main.tex
-\chapter{Analisi}\label{chap:analysis}
+\chapter{Analisi}\label{cap:analysis}
 \section{Requisiti}\label{sec:requirements}
-\section{Analisi dei Requisiti}\label{sec:requirements-analysis}
-\subsection{Analisi delle Architetture per API}\label{ssec:apis}
-\subsection{Dati in Tempo Reale}\label{ssec:real-time-data}
-\subsection{Multiplatform}\label{ssec:multiplatform}
-\section{Analisi e Modello del Dominio}\label{sec:domain-analysis}
+L'applicativo si pone come obiettivo la realizzazione di un infrastruttura server all'interno della \ac{JVM}, in grado
+di esporre verso l'esterno funzionalità e dati riguardanti simulazioni eseguite attraverso il simulatore Alchemist.
+Con infrastruttura server si intende una componente software in grado di ricevere, elaborare e rispondere attivamente a richieste da parte
+di client esterni al sistema, o quantomeno in un livello d'astrazione superiore al simulatore stesso (e.g. un web renderer che sfrutti il
+server costruito per visualizzare all'interno di un browser dati riguardanti la simulazione).
+
+\paragraph{Requisiti Funzionali} Innanzitutto, il suddetto server si dovr\aacc{a} occupare di esporre un interfaccia comune per l'instaurazione
+di comunicazioni. Una volta connessi, agli agenti esterni \aacc{e} necessario specificare quali tipi di operazioni sono permesse, e in quali
+modalit\aacc{a} le risposte verranno consegnate. Principalmente devono essere esposte tre diversi tipi di operazioni:
+\begin{itemize}
+    \item Recupero dati: operazioni cosiddette \textit{one-shot} per richiedere dati riguardo la simulazione corrente.
+    \item Recupero dati persistente: operazioni di recupero continuativo nel tempo di dati riguardo la simulazione. I dati verranno spediti
+        al richiedente a fronte di cambiamenti di elementi d'interesse nel dominio applicativo.
+    \item Modifica: operazioni con lo scopo di effettuare modifiche al modello applicativo, in grado di provocare \textit{side effect} all'interno
+        della simulazione corrente.
+\end{itemize}
+%
+La comunicazione quindi terminerà con il verificarsi di uno dei seguenti eventi:
+\begin{itemize}
+    \item L'operazione di recupero dati o di modifica ha avuto successo o fallisce.
+    \item L'operazione di recupero dati persistente raggiunge una condizione di terminazione (e.g. l'oggetto osservato viene eliminato).
+    \item La simulazione termina.
+\end{itemize}
+%
+Essendo il simulatore Alchemist in grado di eseguire più simulazioni simultaneamente (\textit{simulation batch}), il server deve essere in grado
+di rispondere a più richieste simultaneamente, potenzialmente anche da client distinti. Inoltre, per via della natura variable delle diverse
+simulazioni, le operazioni esposte devono essere in grado di adattarsi dinamicamente in base al tipo dell'incarnazione.
+
+\paragraph{Requisiti non Funzionali}
+\begin{itemize}
+    \item Dovendo condividere le risorse con il simulatore stesso, il server non deve costituire un eventuale collo di bottiglia che abbia
+        un impatto negativo sulle prestazioni del sistema complessivo.
+    \item L'applicativo sviluppato deve essere compatibile con un ambiente multi piattaforma.
+    \item Sarebbe auspicabile che il server implementi meccanismi di estensione per agevolare l'integrazione con possibili cambiamenti del dominio applicativo.
+\end{itemize}
+
+\section{Analisi dei requisiti}
+I requisiti illustrati nella sezione precedente, mettono in luce alcune caratteristiche interessanti che il sistema deve soddisfare. Primo su tutti,
+il vincolo sull'utilizzo della \ac{JVM} per lo sviluppo di un server, il quale necessiterà di meccanismi in grado di instaurare connessioni
+con diversi attori e sia in grado di rispondere adeguatamente ad ogni richiesta. Queste richieste dovranno successivamente essere elaborate e provocare
+una risposta, sia essa di successo o fallimento. Per la gestione di questo tipo di richieste è necessario quindi valutare le alternative architetturali
+definite negli anni che siano al contempo compatibili con i vincoli implementativi.
+
+\subsection{Analisi delle Architetture API}\label{ssec:api-analysis}
+Nel corso degli anni sono state proposte diverse alternative di pattern architetturali in grado di guidare gli sviluppatori a costruire un software
+distribuito in rete in grado di sopperire al numero sempre maggiore di richieste e risorse.
+In questa analisi verranno presi in considerazione i due principi architetturali più utilizzati: \textbf{REST} e \textbf{GraphQL}.
+
+\paragraph{REST}\label{par:rest}
+Intorno alla fine degli anni novanta e inizio anni duemila, con la diffusione sempre maggiore di internet e di siti per uso generale, nasce l'esigenza
+di definire uno standard architetturale di software basati sulla rete: \ac{REST}~\cite{rest}. \ac{REST} definisce un insieme di principi architetturali
+mirati alla semplicità e alla scalabilità del software. Al centro di questi principi c'è l'idea di considerare tutto come una \textit{risorsa}, a cui si
+accede attraverso URL standardizzati ed univoci.
+Le API \ac{REST} operano attraverso l'utilizzo dei metodi standard HTTP per eseguire le cosiddette operazioni CRUD (\textit{Create, Read, Update, Delete}) sulle risorse; in particolare utilizza:
+\begin{itemize}
+    \item \textbf{GET} per leggere o recuperare informazioni;
+    \item \textbf{POST} per creare nuove risorse;
+    \item \textbf{PUT} o \textbf{PATCH} per aggiornare risorse presenti;
+    \item \textbf{DELETE} per eliminare risorse.
+\end{itemize}
+
+Di norma, si dice che \ac{REST} è ``\textit{Stateless}'', ovvero che ogni richiesta da client a server deve contenere tutte le informazioni necessarie
+per comprenderla e processarla. Questo significa che il server non conserva alcuna informazione sullo stato del client, e che ogni richiesta da parte
+del client è da considerarsi come una nuova richiesta indipendentemente dalle precedenti effettuate.
+
+\paragraph{GraphQL}\label{par:gql}
+GraphQL\footnote{http://facebook.github.io/graphql/} viene sviluppato a partire dal 2012 da Facebook, e si pone come obiettivo la definizione di specifiche e principi architetturali
+per affrontare sfide incontrate con le tradizionali architetture software basate su \ac{REST}. La principale motivazione dietro GraphQL nasce dal
+contesto del social network Facebook, dove molto spesso la larghezza di banda e risorse computazionali sono molto limitate. GraphQL quindi delinea
+linee guida per la realizzazione di architetture che permettano al client la flessibilità di poter richiedere esattamente i dati di cui necessitano.
+Questo avviene mediante l'impiego di un linguaggio ad hoc per la definizione di \textit{query}, le quali specificano esattamente quali dati recuperare
+dal singolo \textit{endpoint} delle API esposte dal server: in GraphQL infatti non si deve specificare un URL per ogni risorsa, ma queste vengono 
+recuperate a partire da un singolo URL univoco (e.g. \texttt{/graphql}) in combinazione con una query GraphQL.
+Le operazioni all'interno di GraphQL sono:
+\begin{itemize}
+    \item \textbf{Query} per leggere determinati dati;
+    \item \textbf{Mutation} per modificare uno o più dati;
+    \item \textbf{Subscription} per sottoscriversi ai cambiamenti di un dato, attraverso aggiornamenti in tempo reale (discussa in \Cref{ssec:real-time}).
+\end{itemize}
+Non esistendo un vincolo ad una specifica base di dati, per poter operare sui dati GraphQL necessita di lavorare su uno \textit{schema}, definito
+attraverso uno \ac{SDL} che descrive la struttura dei dati attraverso i loro tipi e campi all'interno della struttura. Grazie a ciò, ogni operazione
+viene dapprima validata sullo schema, e successivamente eseguita sul server fornendo così un meccanismo di \textit{type safety} in grado di bloccare
+in anticipo richieste GraphQL malformate.
+
+\paragraph{Conclusioni}\label{par:rest-vs-gql}
+Oggi queste due architetture convivono all'interno di molti sistemi, poiché ognuna offre i relativi pro e contro. Primo su tutti, \ac{REST} risulta più semplice
+da un punto di vista implementativo, perché non richiede la definizione e manutenzione di uno schema che descriva i dati. Allo stesso tempo grazie a
+quest'ultimo GraphQL è in grado di fornire meccanismi che prevengano il fenomeno di \textit{over-fetching}, del quale soffrono invece sistemi RESTful.
+Per quanto riguarda l'efficienza effettiva di questi sistemi, non è possibile determinare a priori uno sull'altro, poiché per quanto GraphQL riesca
+a privilegiare scenari dove la scarsa banda è notevole (e.g. applicazioni per dispositivi mobili, dispositivi IoT), in alcuni sistemi risulta
+più efficiente un architettura che possa sfruttare al meglio il \textit{caching} dei dati, tipico dei sistemi \ac{REST}~\cite{gql_vs_rest}.
+
+In sintesi, l'adozione di una delle due architetture dipende fortemente dalla natura dell'applicativo, rendendo necessaria la conoscenza
+dei pro e contro di un sistema maturo e largamente diffuso come REST, oppure un paradigma relativamente nuovo e ancora in via di sviluppo,
+ma dalle grandi potenzialità.
+
+\subsection{Dati in Tempo Reale}\label{ssec:real-time}
+Il sistema deve fornire le informazioni riguardo le simulazioni sperabilmente in modo asincrono ed efficiente, sia lato server sia lato client.
+In sistemi software dove avviene una costante richiesta da parte di un client di dati in tempo reale, pu\aacc{o} essere effettuata nei casi pi\aacc{u} semplici
+attraverso ci\aacc{o} che viene definito ``\textit{long polling}''. In questo scenario, come raffigurato in \Cref{fig:server-polling}, viene instaurata
+una comunicazione per ogni volta che il client necessita di un dato, potenzialmente provocandone il blocco in attesa della risposta. \aacc{E} da subito
+evidente come se le comunicazioni sono frequenti, l'\textit{overhead} causato dalla instaurazione della comunicazione e attesa di ricezione dei dati
+possono risultare in un sistema ben poco efficiente.
+
+%----------------------------------------%
+\centerimage{figures/server-long-polling.png}{Richiesta di dati in tempo reale attraverso \textit{long polling}.}{server-polling}{0.3}
+%----------------------------------------%
+
+\par
+Un sistema pi\aacc{u} efficiente \aacc{e} costituito dal modello \textit{publish-subscribe}~\cite{pubsub}. Mediante l'utilizzo di questo
+pattern, gli utenti interessati ad un certo dato si ``sottoscrivono'' ad un determinato \textit{topic}. Una volta che viene registrato un cambiamento
+o viene attivato un evento riguardante quel \textit{topic}, il server ha il compito di ``pubblicare'' le informazioni aggiornate: a questo punto
+tutti i client che si sono iscritti per quel determinato \textit{topic} riceveranno il dato aggiornato, senza bisogno di provocare ulteriori connessioni
+con il server stesso. In questo modo viene creata una connessione persistente tra client e il buffer di spedizione, sollevando il server
+dall'incarico di informare tutti i possibili client.
+
+Per l'instaurazione di queste comunicazioni persistenti e allo stesso tempo bidirezionali, è spesso utilizzato il protocollo \textit{WebSocket}~\cite{websocket}.
+Nato come soluzione per superare le limitazioni delle connessioni HTTP tradizionali, WebSocket opera su una singola connessione aperta, riducendo la
+latenza e garantendo trasmissioni in tempo reale.
+Questo protocollo e il pattern \textit{Publish-Subscribe} aiutano a delineare una possibile configurazione di come possa essere strutturata
+l'architettura di messaggistica in tempo reale tra un client e il server Alchemist.
+In \Cref{fig:server-sub} \aacc{e} mostrato qual \aacc{e} il comportamento desiderabile per
+il server Alchemist, il quale dovrebbe essere in grado di rispondere in maniera asincrona a tutti i possibili client che si sottoscrivono
+per ottenere dati in tempo reale riguardo gli elementi del dominio.
+
+%----------------------------------------%
+\centerimage{figures/server-subscription.png}{Richiesta dati in tempo reale sfruttando connessioni persistenti.}{server-sub}{0.4}
+%----------------------------------------%
+
+\subsection{Multiplatform}\label{sec:multiplatform}
+Uno dei principali benefici del linguaggio Kotlin è il supporto alla programmazione di applicazioni multi piattaforma\footnote{https://kotlinlang.org/docs/multiplatform.html}
+(e.g. Android, iOS, web).
+Questa tecnologia permette di ridurre drasticamente lo sviluppo e il mantenimento dello stesso codice per differenti piattaforme, mantenendo la
+flessibilità e i benefici dello sviluppo nativo con Kotlin.
+
+Un progetto multiplatform si compone di una serie di moduli, detti \textit{source sets}, ognuno dei quali contiene al suo interno le componenti che
+hanno come target una specifica piattaforma, come illustrato in \Cref{fig:kt-multiplatform}. Tutti i moduli condividono il \textit {source set} \textit{Common Kotlin}, il quale mantiene le librerie
+fondamentali per il linguaggio Kotlin e tutto il codice portabile nelle diverse piattaforme.
+
+%----------------------------------------%
+\centerimagesource{figures/kmp-compilations.png}{Struttura di un progetto Kotlin Multiplatform per due piattaforme: \textit{Kotlin/JVM} e \textit{Kotlin/JS}}{kt-multiplatform}{0.8}{https://kotlinlang.org/docs/multiplatform-discover-project.html}
+%----------------------------------------%
+
+Kotlin mutliplatform può essere impiegato in molte applicazioni, ma prevalentemente si ricordano:
+\begin{itemize}
+    \item \textbf{Applicazioni Android, iOS e web}: in questo contesto, la logica dell'applicativo si sviluppa all'interno del modulo comune a tutte
+        le piattaforme, mentre per esempio le specifiche implementazioni del front-end vengono delegate al relativo modulo. In questo modo, il codice
+        specifico per ogni piattaforma viene ridotto notevolmente.
+    \item \textbf{Applicazioni Web Full-stack}: in questo caso i moduli previsti possono consistere, oltre al modulo comune, in un modulo \textit{Kotlin/JVM}
+        per quanto riguarda il server, mentre un modulo \textit{Kotlin/JS}. All'interno del modulo comune possono essere condivisi elementi del modello e
+        logiche che possono essere condivisibili tra client e server.
+    \item \textbf{Librerie Multiplatfom}: creando librerie con codice comune e implementazioni specifiche per le piattaforme, come JVM o web, è possibile
+        utilizzarle come dipendenze in altri progetti multi piattaforma.
+\end{itemize}
+
+\section{Analisi e Modello del Dominio}\label{sec:domain-model}
+Il dominio sottostante l'architettura server è stato descritto in \Cref{sec:alchemist}. Il server quindi si pone come tramite tra la simulazione e le 
+richieste client, esponendo un insieme di API GraphQL richiamabili da client di varia natura. Come mostrato in \Cref{fig:component-1}, i client derivano
+tutti di una componente comune in grado di comunicare con l'\textit{endpoint} GraphQL, fornendo in un secondo momento l'implementazione specifica per
+la piattaforma che utilizzano.
+
+%----------------------------------------%
+\centerimage{figures/component-diagram-1.png}{Diagramma UML dei componenti dell'architettura di alto livello}{component-1}{0.8}
+%----------------------------------------%
+
+Per quanto riguarda il design delle \ac{API}, lo scopo principale è quello di dimostrare la fattibilità del sistema, provando di essere in grado
+di instaurare connessioni con un numero ragionevole di client soddisfacendone le richieste del tipo \textit{Query}, \textit{Mutation} e \textit{Subscription},
+gestendo opportunamente la comunicazione del successo o fallimento dell'operazione.
+Infine, i requisiti di supporto a simulazioni in modalità batch e vincolo sulle performance, saranno oggetto di lavori futuri sull'architettura
+esposta in questo documento, per via della loro complessa natura, rispettivamente di implementazione e analisi. (?)
 

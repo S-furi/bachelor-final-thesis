@@ -1,9 +1,71 @@
 %!TEX root = ../thesis-main.tex
 \chapter{Design}\label{chap:design}
 \section{Architettura ad Alto Livello}\label{sec:architecture}
+L'analisi dell'applicativo può essere scomposta in due sezioni principali, rispettivamente per il server e il client.
+Per quanto il primo sia il fulcro di questo elaborato, il client sarà necessario per dimostrare il funzionamento e l'impiego delle API.
+
+Una rappresentazione di alto livello dell'architettura è raffigurata in \Cref{fig:component-1}, mostrando il funzionamento generale dell'applicazione
+considerando anche le interazioni dei vari componenti.
+Possiamo definire i ruoli come segue:
+\begin{itemize}
+    \item \textbf{Simulation}: punto di accesso delle API Alchemist. È responsabilità di questo modulo gestire una simulazione e fornire un interfaccia
+        di accesso all'ambiente e a tutte le sue componenti. Questo componente sarebbe il \textit{model} nel pattern architetturale \ac{MVC}. Questa
+        componente è già implementata all'interno del codice di Alchemist.
+    \item \textbf{GraphQLServer}: possiamo definire due ruoli principali: \begin{itemize}
+            \item Gestione del modello surrogato di Alchemist
+            \item Esposizione del servizio di API GraphQL
+        \end{itemize}
+        Questa componente ricopre il ruolo di \textit{controller} dell'intero applicativo, gestendo le richieste in entrata dai client, risolvendole
+        interagendo con il modello di Alchemist esposto dalla componente \textit{Simulation}.
+    \item \textbf{GraphQLClient}: insieme di elementi in grado di rendere possibile l'instaurazione di una connessione ad un server, ed effettuare su
+        di esso operazioni GraphQL. Questo modulo fa parte del codice \textit{common}, rendendolo quindi indipendente dalla piattaforma.
+    \item \textbf{Client}: Versione \textit{platform specific} di un client GraphQL. Questa componente mantiene tutta la logica di sistema di un
+        servizio lato client, il quale sfrutta le API GraphQL di Alchemist.
+\end{itemize}
+
 \section{Server}\label{sec:server}
-\subsection{Adattamento del Modello}\label{ssec:alchemist-adaptation}
+Il server ha lo scopo di gestione delle comunicazioni con i client e risoluzione delle richieste attraverso opportune interazioni con il modello
+di Alchemist.
+In \Cref{fig:server-class-uml} è mostrato come la componente server sia costruita. La classe principale del server \texttt{GraphQLServer}, la quale è responsabile della parte
+di messa in funzione del servizio GraphQL, si occupa anche di mappare correttamente le richieste in arrivo con le rispettive operazioni 
+descritte nello schema, rappresentate dalle interfacce \texttt{Query}, \texttt{Mutation} e \texttt{Subscription}. L'implementazione di queste ultime
+prevede l'utilizzo delle classi che estendono \texttt{GraphQLSurrogate} il quale scopo è descritto esaustivamente in \Cref{ssec:model-adaptation}.
+%
+%----------------------------------------%
+\centerimage{figures/server-class-uml.png}{Architettura ad alto livello del Server.}{server-class-uml}{0.5}
+%----------------------------------------%
+%
+
+\subsection{Adattamento del Modello}\label{ssec:model-adaptation}
+Il paradigma architetturale per lo sviluppo delle API è GraphQL, il quale impone delle specifiche che mirano alla semplicità di realizzazione del server,
+ma specialmente permettono di definire uno schema che sia il più comprensivo e semplice possibile. Per quanto per modelli semplici questo sia un bene,
+all'interno di Alchemist il modello presenta molti elementi incompatibili con le suddette specifiche, in particolar modo:
+\begin{itemize}
+    \item ``\textit{Interfaces are never valid inputs.}''\footnote{http://spec.graphql.org/draft/\#sec-Interfaces}. Questo significa che ogni interfaccia
+        definita nel modello di Alchemist, non può figurare come input o parametro di una funzione o un metodo all'interno dello schema GraphQL.
+    \item Per la semplicità dello schema e della risoluzione dei tipi, i tipi generici non sono ammessi.
+\end{itemize}
+Per la natura di Alchemist, l'estendibilità e la genericità sono due componenti fondamentali. Questo implica che all'interno del modello viene fatto un
+ampio uso di interfacce e polimorfismo attraverso l'impiego di generici, rendendo impossibile una rappresentazione diretta di questi elementi all'interno
+di uno schema GraphQL.
+Risulta quindi necessario definire uno strato intermedio di oggetti che siano conformi alle specifiche, i quali siano facilmente riconducibili ad oggetti
+Alchemist. Queste classi sono quindi rappresentabili attraverso il pattern architetturale \textit{Adapter}~\cite{design-patterns}, nella sua declinazione
+di \textit{Object Adapter}. Un esempio di come viene applicato questo pattern è raffigurato in \Cref{fig:surrogate-demo}, dove l'oggetto \texttt{Node} di Alchemist
+viene esposto dal server attraverso il suo surrogato, \texttt{NodeSurrogate}.
+%
+%----------------------------------------%
+\centerimage{figures/surrogate-demo.png}{Applicazione del pattern \textit{Adapter} per la classe \texttt{Node}.}{surrogate-demo}{0.7}
+%----------------------------------------%
+%
+Ogni surrogato estenderà la classe aperta (\textit{open class}) \texttt{GraphQLSurrogate}, specificando come template l'oggetto del modello di Alchemist
+incapsulato.
+%
+In questo modo gli oggetti coinvolti nelle comunicazioni GraphQL saranno rappresentati dai surrogati, i quali delegano all'oggetto che rappresentano
+il calcolo dell'operazione richiesta.
+
 \subsection{API GraphQL}\label{ssec:server-gql-apis}
+
 \section{Client}\label{sec:client}
+
 \subsection{Effettuazione operazioni GraphQL}\label{ssec:client-gql-apis}
 

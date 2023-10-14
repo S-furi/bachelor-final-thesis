@@ -1,8 +1,42 @@
 %!TEX root = ../thesis-main.tex
-\chapter{Introduzione}\label{chap:introduction}
+\chapter{Panoramica}\label{chap:introduction}
+\section{Introduzione}\label{sec:background}
+Le \ac{API} rappresentano una componente fondamentale nei sistemi software moderni. Da decenni, esse sono state il cardine dell'interoperabilità tra differenti software e piattaforme, permettendo la
+creazione di ecosistemi software integrati e coesi, in cui applicazioni di diversa natura possono scambiare dati e funzionalità in modo efficace ed efficiente.
+Nell'architettura di un sistema software, le \ac{API} fungono da interfacce contrattuali definendo i metodi e i protocolli con cui le diverse componenti software interagiscono. Questo non solo 
+promuove la modularità e il riuso, ma anche la scalabilità dell'intero sistema; in particolare con l'evoluzione delle architetture distribuite il ruolo delle \ac{API} è ancora più cruciale.
+Esse non solo consentono la comunicazione tra diversi servizi, ma spesso rappresentano il principale punto di contatto e di interazione tra un servizio e i suoi consumatori, sia essi altre applicazioni
+o utenti finali.
 
-\section{Panoramica}\label{sec:background}
-\subsection{Alchemist}\label{ssec:alchemist}
-~\cite{alchemist}
-\section{Obiettivi e Motivazioni}\label{sec:objectives}
+In questo scenario si pone il progetto discusso nel presente documento: l'analisi e l'implementazione di un architettura software che interagisce con il simulatore Alchemist, esponendo funzionalità e
+servizi di controllo essenziali per lo sviluppo di applicativi attraverso le API progettate.
+Attraverso questo nuovo modulo, si mira a fornire un accesso standardizzato ed efficiente alle componenti di un sistema software complesso come Alchemist, facilitando così la manipolazione e il controllo
+delle sue funzionalità.
 
+
+\section{Contesto}\label{sec:context}
+\subsection{Simulazione}\label{ssec:alchemist} ~\cite{alchemist}
+\subsection{Interazione coi Simulatori}\label{ssec:sim-interactions}
+Allo stato attuale, l'interazione con le simulazioni avviene principalmente mediante lo sviluppo di codice all'interno della \ac{JVM} che comunichi direttamente con il modello di Alchemist.
+Questo porta allo sviluppo di moduli aggiuntivi coerenti con l'architettura generale del sistema, ma è evidente come la loro implementazione non può astrarre al di la delle interfacce fornite
+dal simulatore. Prendendo come esempio il modulo per la realizzazione di un interfaccia grafica, l'intero modulo è a conoscenza e deve adattarsi al dominio applicativo, implicandone 
+la profonda conoscenza e comprensione dell'interazione di tutte le componenti.
+
+\section{Motivazioni e Obiettivi}\label{sec:motivations-objectives}
+Quanto discusso nella sezione precedente mette in luce come risulti di grande aiuto il controllo e la gestione dell'intero simulatore attraverso interfacce ad alto livello che astraggano dalla simulazione
+e le sue relazioni interne.
+
+\subsection{Interazione Efficiente tra Piattaforme Diverse}\label{ssec:platforms-interactions}
+Mediante lo sviluppo di API al di sopra del modello di Alchemist, è possibile costruire meccanismi che permettano di interagire con le simulazioni in modo standardizzato per qualsiasi piattaforma che
+ne richieda i servizi. In particolare, questo provvede a definire due tipi di standardizzazione: una dal punto di vista delle interfacce contrattuali esposte dalle API, perciò valide all'interno
+di un qualsiasi sistema software (e.g. sistema \textit{web-based} all'infuori della \ac{JVM}), e un'altra per quanto riguarda
+le strategie impiegate per il recupero dei dati necessari o l'invio di comunicazioni alle componenti interne. Proprio grazie ad un buon design di queste ultime, si può provvedere ad esporre metodologie
+di accesso o controllo della simulazione nella maniera più efficiente e personalizzabile possibile.
+
+\subsection{Obiettivi}\label{ssec:objectives}
+Obiettivo principale di questo lavoro è quello di progettare e implementare un'architettura software in grado di accedere alle componenti del simulatore Alchemist, e rendere disponibili all'esterno
+servizi e funzionalità di quest'ultimo, attraverso un'insieme di API standardizzate ed efficienti, compatibili con sistemi potenzialmente all'infuori della \ac{JVM}. In questo modo, si fornisce un
+sistema di accesso e controllo efficiente delle simulazioni eseguite all'interno di Alchemist, in grado di porsi come canale comunicativo tra applicativi software terzi e il simulatore stesso.
+
+In generale il software prodotto deve focalizzarsi sulla produzione di un architettura generica ed estendibile in grado di adattarsi alla natura mutevole di Alchemist, fornendo allo stesso tempo
+un punto d'accesso consistente, flessibile ed efficiente.
