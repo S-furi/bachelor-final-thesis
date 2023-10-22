@@ -2,8 +2,41 @@
 \chapter{Implementazione e Verifica}\label{chap:implementation}
 
 \section{Superamento delle specifiche GraphQL}\label{sec:overcoming-gql-specs}
+Come illustrato nella sezione \Cref{ssec:server-gql-apis}, l'approccio desiderabile di sviluppo del codice per lo schema GraphQL è un approccio di
+tipo \textit{code-first}. La libreria GraphQL Kotlin \footnote{https://opensource.expediagroup.com/graphql-kotlin/} offre proprio questo tipo di
+approccio, permettendo di astrarre il più possibile dalla implementazione dello schema. Questo però comporta inevitabilmente un conflitto tra il modello
+di Alchemist e le specifiche GraphQL, le quali non sono in grado di fornire una rappresentazione uno a uno del modello.
+In questo contesto nasce la necessità di definire dei surrogati per adattare il modello di Alchemist ad uno schema che sia conforme alle specifiche,
+e allo stesso tempo garantire la genericità dipendente dalle diverse \textit{incarnation}.
 
 \subsection{Surrogati (\textit{Object Adapter Design Pattern})}\label{ssec:surrogates}
+I surrogati per il modello di Alchemist hanno il compito di adattare elementi complessi del dominio con versioni meno complesse e compatibili
+con un sistema con determinate caratteristiche, come lo schema GraphQL. Nel contesto dell'architettura client-server, oltre a ricoprire questo ruolo,
+i surrogati hanno anche la funzione di \ac{DTO}, poiché solo essi compariranno all'interno delle comunicazioni in rete.
+
+Siccome la generazione dello schema GraphQL è delegata alla libreria impiegata, è importante notare come i tipi di Kotlin siano interpretati e adattati
+allo schema. Di seguito sono riportate le trasformazioni tra tipi di Kotlin e tipi GraphQL:
+\begin{itemize}
+    \item \textbf{Tipi Primitivi}: i tipi primitivi di Kotlin come \texttt{Int}, \texttt{Float} e \texttt{Double}, \texttt{String} e \texttt{Boolean}
+        sono nativamente supportati da GraphQL, permettendo quindi un adattamento immediato tra codice Kotlin e schema GraphQL.
+    \item \textbf{Classi}: tutte le classi definite in Kotlin, vengono interpretate all'interno dello schema come di tipo \texttt{type}. Un \texttt{type}
+        può comparire come valore di ritorno di un campo dello schema GraphQL, e può estendere un'interfaccia.
+    \item \textbf{Metodi e Proprietà}: i metodi e proprietà (anche i campi) vengono trasposti in uno schema GraphQL come campi di una struttura di tipo
+        \texttt{type}, solo se essi risultano pubblici e non annotati con \kotlin{@GraphQLIgnore}.
+    \item \textbf{Input}: ogni classe che figura come parametro all'interno di un metodo (se pubblico e non annotato con \kotlin{@GraphQLIgnore}) viene
+        interpretato all'interno dello schema GraphQL come di tipo \texttt{input}. Un tipo \texttt{input} può contenere a sua volta dei campi,
+        ma non può estendere un'interfaccia.
+    \item \textbf{Interfacce}: tutte le interfacce definite tali all'interno del codice Kotlin, vengono interpretate come tipo \texttt{Interface} all'interno
+        dello schema GraphQL. Un'interfaccia si compone di campi all'interno dello schema, può figurare come valore di ritorno di un metodo o di una proprietà
+        ma \textit{non} può essere un parametro di un metodo.
+\end{itemize}
+
+
+\code{Kotlin}{./listings/GraphQLSurrogate.kt}{caption}{gql-surrogate}
+
+
+Per quanto il \textit{mapping} tra un oggetto Alchemist sia efficace lato server (per via del riferimento all'oggetto originale), per tutte le operazioni
+che prevedono in input un surrogato, il mapping non risulta immediato.
 
 \subsection{Generiticità attraverso \textit{Custom Datatypes}}\label{ssec:custom-dtypes}
 
