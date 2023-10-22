@@ -25,25 +25,51 @@ Possiamo definire i ruoli come segue:
 
 \section{Server}\label{sec:server}
 Il server ha lo scopo di gestione delle comunicazioni con i client e risoluzione delle richieste attraverso opportune interazioni con il modello
-di Alchemist.
-In \Cref{fig:server-class-uml} è mostrato come la componente server sia costruita. La classe principale del server \texttt{GraphQLServer}, la quale è responsabile della parte
-di messa in funzione del servizio GraphQL, si occupa anche di mappare correttamente le richieste in arrivo con le rispettive operazioni 
-descritte nello schema, rappresentate dalle interfacce \texttt{Query}, \texttt{Mutation} e \texttt{Subscription}. L'implementazione di queste ultime
-prevede l'utilizzo delle classi che estendono \texttt{GraphQLSurrogate} il quale scopo è descritto esaustivamente in \Cref{ssec:model-adaptation}.
+di Alchemist. Di seguito verranno illustrate le componenti fondamentali e l'architettura nel suo complesso.
 %
-%----------------------------------------%
-\centerimage{figures/server-class-uml.png}{Architettura ad alto livello del Server.}{server-class-uml}{0.5}
-%----------------------------------------%
-%
+\subsection{API GraphQL}\label{ssec:server-gql-apis}
+Come detto in precedenza, le API GraphQL costruite mirano a fornire una visuale ad alto livello di una o più simulazioni attraverso operazioni di tipo \textit{query},
+modificare lo stato della simulazione o elementi del dominio attraverso \textit{mutation} e sottoscriversi a cambiamenti degli stessi attraverso \textit{subscription}.
+L'esecuzione di queste operazioni deve avvenire in modo asincrono in modo tale da non bloccare il funzionamento del simulatore per la risoluzione delle richieste.
+
+A differenza dei sistemi \ac{REST}ful, i quali espongono i servizi attraverso differenti \textit{endpoint} per l'esecuzione di operazioni, GraphQL opera esponendo un
+singolo endpoint (tipicamente \texttt{/graphql}) sul quale inviare l'operazione GraphQL desiderata secondo lo schema:
+\begin{itemize}
+    \item \textbf{query}: operazione GraphQL desiderata.
+    \item \textbf{variables}: variabili in input all'operazione specificata nel campo ``query''.
+    \item \textbf{operationName}: nome dell'operazione da eseguire (opzionale).
+\end{itemize}
+Essendo GraphQL agnostico rispetto al protocollo utilizzato, le specifiche non definiscono un protocollo di trasporto standard, ma è ampiamente adottato
+e \textit{de-facto} standard l'impiego di HTTP.
+All'interno di questo contesto, gran parte dei sistemi GraphQL supportano sia il metodo GET, sia il metodo POST di HTTP. Il primo prevede l'inserimento
+dell'operazione GraphQL (formattata secondo lo schema sopra descritte) direttamente nell'URI dell'endpoint GraphQL. È evidente come però se la rappresentazione
+in stringa dell'operazione sia abbastanza lunga, si incorre nell'errore \texttt{414 URI Too Long}. Proprio per questo motivo è largamente diffuso inserire
+nel \textit{payload} del metodo POST l'operazione GraphQL per evitare questo genere di problematiche.
+
+Dopo aver definito le metodologie di comunicazione tra client e server, è necessaria la definizione dei \textit{resolver} per le operazioni GraphQL.
+Il resolver ha il compito di effettuare il \textit{parsing} dell'operazione e successivamente la validazione della stessa sullo schema GraphQL.
+Se la validazione ha esito positivo, verrà eseguita la relativa operazione di recupero dei dati (\textit{fetching}) e inviata la risposta al client.
+È importante sottolineare come la creazione di tale architettura può avvenire mediante due approcci:
+\begin{itemize}
+    \item \textit{schema-first}: viene dapprima creato lo schema GraphQL in base agli elementi del modello, e successivamente per ogni elemento dello schema
+        si definisce un \textit{resolver}.
+    \item \textit{code-first}: lo schema e i resolver vengono generati con la compilazione del codice sorgente contenente gli elementi del modello
+        e le operazioni GraphQL.
+\end{itemize}
+Nel caso di Alchemist, è sicuramente preferibile il secondo approccio per evitare che un cambiamento nel dominio applicativo debba essere propagato
+all'interno dello schema e tutti i relativi resolver.
+Per quanto questo approccio porti vantaggi per quanto riguarda l'astrazione dallo schema e dalla risoluzione delle operazioni, le specifiche GraphQL
+non permettono una rappresentazione uno a uno con il modello di Alchemist.
 
 \subsection{Adattamento del Modello}\label{ssec:model-adaptation}
-Il paradigma architetturale per lo sviluppo delle API è GraphQL, il quale impone delle specifiche che mirano alla semplicità di realizzazione del server,
-ma specialmente permettono di definire uno schema che sia il più comprensivo e semplice possibile. Per quanto per modelli semplici questo sia un bene,
-all'interno di Alchemist il modello presenta molti elementi incompatibili con le suddette specifiche, in particolar modo:
+GraphQL impone delle specifiche che mirano alla definizione di uno schema in grado di esprimere
+esaustivamente gli elementi del modello e le operazioni che possono essere effettuate su di essi, mantenendo allo stesso tempo un elevato livello di semplicità.
+Per quanto queste specifiche siano efficaci per sistemi con un modello piuttosto semplice, all'interno di Alchemist il modello presenta molti elementi incompatibili
+con le suddette specifiche. In particolare, consideriamo le seguenti:
 \begin{itemize}
     \item ``\textit{Interfaces are never valid inputs.}''\footnote{http://spec.graphql.org/draft/\#sec-Interfaces}. Questo significa che ogni interfaccia
         definita nel modello di Alchemist, non può figurare come input o parametro di una funzione o un metodo all'interno dello schema GraphQL.
-    \item Per la semplicità dello schema e della risoluzione dei tipi, i tipi generici non sono ammessi.
+    \item I tipi generici non sono ammessi.
 \end{itemize}
 Per la natura di Alchemist, l'estendibilità e la genericità sono due componenti fondamentali. Questo implica che all'interno del modello viene fatto un
 ampio uso di interfacce e polimorfismo attraverso l'impiego di generici, rendendo impossibile una rappresentazione diretta di questi elementi all'interno
@@ -54,18 +80,67 @@ di \textit{Object Adapter}. Un esempio di come viene applicato questo pattern è
 viene esposto dal server attraverso il suo surrogato, \texttt{NodeSurrogate}.
 %
 %----------------------------------------%
-\centerimage{figures/surrogate-demo.png}{Applicazione del pattern \textit{Adapter} per la classe \texttt{Node}.}{surrogate-demo}{0.7}
+\centerimage{figures/surrogate-demo.png}{Applicazione del pattern \textit{Adapter} per la classe \texttt{Node}.}{surrogate-demo}{0.5}
 %----------------------------------------%
 %
-Ogni surrogato estenderà la classe aperta (\textit{open class}) \texttt{GraphQLSurrogate}, specificando come template l'oggetto del modello di Alchemist
+Ogni surrogato estenderà la classe aperta (\texttt{open class}) \texttt{GraphQLSurrogate}, specificando come template l'oggetto del modello di Alchemist
 incapsulato.
 %
-In questo modo gli oggetti coinvolti nelle comunicazioni GraphQL saranno rappresentati dai surrogati, i quali delegano all'oggetto che rappresentano
-il calcolo dell'operazione richiesta.
+In questo modo tutti gli oggetti che figurano all'interno di Query, Mutation o Subscription saranno solo surrogati, i quali (lato server) delegano la
+risoluzione dell'operazione all'oggetto Alchemist sottostante.
+In \Cref{fig:server-class-uml} è mostrato come la componente server sia costruita. La classe principale del server \texttt{GraphQLServer}, la quale è responsabile della parte
+di messa in funzione del servizio GraphQL, si occupa anche di mappare correttamente le richieste in arrivo con le rispettive operazioni 
+descritte nello schema, rappresentate dalle interfacce \texttt{Query}, \texttt{Mutation} e \texttt{Subscription}.
 
-\subsection{API GraphQL}\label{ssec:server-gql-apis}
+%----------------------------------------%
+\centerimage{figures/server-class-uml.png}{Architettura ad alto livello del Server.}{server-class-uml}{0.4}
+%----------------------------------------%
 
 \section{Client}\label{sec:client}
+Considerando il contesto \textit{Multiplatform} del sistema, ci si concentrerà su tutte quelle componenti che saranno condivise tra tutte le tipologie
+di client che verranno sviluppate in base alla piattaforma, ovvero tutti i moduli contenuti all'interno del \textit{source-set} \textit{commonMain}.
+Per poter effettuare operazioni GraphQL, un client deve essere in grado di 
+\begin{enumerate*}[label=(\roman*)]
+    \item instaurare una connessione con un server GraphQL,
+    \item recuperare lo schema attraverso un'operazione detta di \textit{schema introspection},
+    \item effettuare un operazione GraphQL,
+    \item attendere, recuperare e interpretare il risultato ottenuto.
+\end{enumerate*}
 
 \subsection{Effettuazione operazioni GraphQL}\label{ssec:client-gql-apis}
+Se il server genera lo schema GraphQL a partire dal codice del modello, il client genera il codice del modello grazie allo schema. Il client infatti
+necessita a tempo di compilazione dello schema GraphQL del server, affinché sia possibile la validazione delle operazioni richieste nel codice
+già a tempo di compilazione. Questo provvede a garantire una \textit{type safety} già nel momento in cui il codice client viene scritto, evitando
+preventivamente possibili operazioni GraphQL malformate. Come anticipato nella sezione precedente, lo schema può essere recuperato mediante un'operazione
+chiamata \textit{introspection}. Questa operazione permette di interrogare uno speciale \textit{endpoint} del server GraphQL, generalmente \texttt{/sdl},
+in grado di fornire al richiedente lo schema completo del modello, insieme a tutte le operazioni eseguibili.
 
+Una volta che il codice del modello è stato generato a partire dallo schema, il client può fornire un insieme di operazioni eseguibili sul server attraverso
+un insieme di file con estensione ``.graphql'' dove sono contenuti i dettagli di quali dati specifici si vuole ricavare da un operazione esposta dal server.
+
+In figura \Cref{fig:client-func} è riassunto mediante un diagramma di flusso il funzionamento di un client GraphQL.
+%----------------------------------------%
+\centerimage{figures/client_func.png}{Utilizzo del server GraphQL lato client}{client-func}{0.7}
+%----------------------------------------%
+
+Di seguito vengono elencate le funzionalità basilari che il client deve poter essere in grado di esguire:
+\begin{itemize}
+    \item \textbf{Query}: le query sono tutte quelle operazioni che prevedono il recupero di un dato dal server. Per una versione dimostrativa del software
+        un client deve essere in grado di effettuare query per recuperare:
+        \begin{itemize}
+            \item Stato della simulazione.
+            \item Elenco dei nodi e loro posizioni.
+            \item Data una posizione e un \texttt{Layer}, conoscere il valore in quel punto.
+            \item Concentrazione di una molecola all'interno di nodo.
+            \item Dato un nodo, avere l'elenco dei nodi suoi vicini (\texttt{Neighborhood}).
+        \end{itemize}
+    \item \textbf{Mutation}: queste operazioni effettuano modifiche all'interno della simulazione, e possiamo comprendere tra queste sia operazioni
+        in grado di modificare lo stato della simulazione (\textit{play}, \textit{pause} e \textit{terminate}), sia operazioni che modificano l'ambiente
+        (e.g. aggiunta di un nodo, aggiunta di un layer, clonazione di un nodo, ...).
+    \item \textbf{Subscription}: la raccolta di informazioni in tempo reale riguardo un elemento del dominio è una delle operazioni fondamentali per i
+        requisiti del sistema. Queste operazioni possono comprendere tutti gli elementi del dominio che hanno una natura mutevole (e.g. i nodi, le concentrazioni).
+\end{itemize}
+
+\subsection{Client \textit{Kotlin/JS}}\label{ssec:kt-js-client}
+Come dimostrazione del funzionamento dell'intero sistema software costruito, si provvede un'implementazione di un client all'interno di un ambiente
+web, sfruttando il \textit{transpiler} (i.e. generazione di codice JavaScript/TypeScript a partire da codice Kotlin) nativo di Kotlin Mutliplatform.

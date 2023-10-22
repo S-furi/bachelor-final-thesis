@@ -10,7 +10,7 @@ o utenti finali.
 
 In questo scenario si pone il progetto discusso nel presente documento: l'analisi e l'implementazione di un architettura software che interagisce con il simulatore Alchemist, esponendo funzionalità e
 servizi di controllo essenziali per lo sviluppo di applicativi attraverso le API progettate.
-Attraverso questo nuovo modulo, si mira a fornire un accesso standardizzato ed efficiente alle componenti di un sistema software complesso come Alchemist, facilitando così la manipolazione e il controllo
+Tramite questo nuovo modulo, si mira a fornire un accesso standardizzato ed efficiente alle componenti di un sistema software complesso come Alchemist, facilitando così la manipolazione e il controllo
 delle sue funzionalità.
 
 \section{Contesto}\label{sec:context}
@@ -49,13 +49,9 @@ Il meta-modello di Alchemist pu\aacc{o} essere riassunto nella \Cref{fig:alchemi
 \centerimagesource{figures/alchemist-model.png}{Meta-modello di Alchemist}{alchemist-metamodel}{1}{https://alchemistsimulator.github.io/explanation/metamodel/}
 %----------------------------------------%
 
-\paragraph{Incarnation} La chiave dell'estensibilit\aacc{a} di Alchemist risiede nella rappresentazione astratta di molecole e concentrazioni. Anche
-\begin{enumerate*}[label=(\roman*)]
-    \item un identificatore generico e
-    \item un certo dato, di un qualche tipo.
-\end{enumerate*}
+\paragraph{Incarnation} La chiave dell'estensibilit\aacc{a} di Alchemist risiede nella rappresentazione astratta di molecole e concentrazioni.
 All'interno di Alchemist una \textit{Incarnation} include una definizione per il tipo delle concentrazioni, un eventuale insieme di specifiche
-condizioni, azione e (raramente) un ambiente e reazioni che operano su quei determinati tipi. In altre parole, un'incarnazione \aacc{e} una
+condizioni, azioni e (raramente) un ambiente e reazioni che operano su quei determinati tipi. In altre parole, un'incarnazione \aacc{e} una
 istanza concreta del meta-modello di Alchemist.
 %
 Diverse \textit{Incarnation} possono modellare universi completamente differenti. Allo stato attuale, Alchemist viene distribuito con le seguenti incarnazioni:
