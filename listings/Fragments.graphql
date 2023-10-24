@@ -1,0 +1,10 @@
+query NodePosition($nodeId: Int!) {
+    nodePosition(nodeId: $nodeId) {
+        dimensions
+        coordinates
+        ... on Position2DSurrogate {
+            x
+            y
+        }
+    }
+}

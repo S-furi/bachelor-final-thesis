@@ -11,34 +11,87 @@ e allo stesso tempo garantire la genericità dipendente dalle diverse \textit{in
 
 \subsection{Surrogati (\textit{Object Adapter Design Pattern})}\label{ssec:surrogates}
 I surrogati per il modello di Alchemist hanno il compito di adattare elementi complessi del dominio con versioni meno complesse e compatibili
-con un sistema con determinate caratteristiche, come lo schema GraphQL. Nel contesto dell'architettura client-server, oltre a ricoprire questo ruolo,
+con uno schema GraphQL. Nel contesto dell'architettura client-server, oltre a ricoprire questo ruolo,
 i surrogati hanno anche la funzione di \ac{DTO}, poiché solo essi compariranno all'interno delle comunicazioni in rete.
 
 Siccome la generazione dello schema GraphQL è delegata alla libreria impiegata, è importante notare come i tipi di Kotlin siano interpretati e adattati
-allo schema. Di seguito sono riportate le trasformazioni tra tipi di Kotlin e tipi GraphQL:
+allo schema GraphQL. Di seguito sono riportate le trasformazioni tra tipi di Kotlin e tipi GraphQL:
 \begin{itemize}
     \item \textbf{Tipi Primitivi}: i tipi primitivi di Kotlin come \texttt{Int}, \texttt{Float} e \texttt{Double}, \texttt{String} e \texttt{Boolean}
         sono nativamente supportati da GraphQL, permettendo quindi un adattamento immediato tra codice Kotlin e schema GraphQL.
     \item \textbf{Classi}: tutte le classi definite in Kotlin, vengono interpretate all'interno dello schema come di tipo \texttt{type}. Un \texttt{type}
         può comparire come valore di ritorno di un campo dello schema GraphQL, e può estendere un'interfaccia.
-    \item \textbf{Metodi e Proprietà}: i metodi e proprietà (anche i campi) vengono trasposti in uno schema GraphQL come campi di una struttura di tipo
+    \item \textbf{Metodi e Proprietà}: i metodi e proprietà vengono trasposti in uno schema GraphQL come campi di una struttura di tipo
         \texttt{type}, solo se essi risultano pubblici e non annotati con \kotlin{@GraphQLIgnore}.
     \item \textbf{Input}: ogni classe che figura come parametro all'interno di un metodo (se pubblico e non annotato con \kotlin{@GraphQLIgnore}) viene
         interpretato all'interno dello schema GraphQL come di tipo \texttt{input}. Un tipo \texttt{input} può contenere a sua volta dei campi,
         ma non può estendere un'interfaccia.
-    \item \textbf{Interfacce}: tutte le interfacce definite tali all'interno del codice Kotlin, vengono interpretate come tipo \texttt{Interface} all'interno
+    \item \textbf{Interfacce}: tutte le interfacce definite tali all'interno del codice Kotlin, vengono interpretate come tipo \texttt{interface} all'interno
         dello schema GraphQL. Un'interfaccia si compone di campi all'interno dello schema, può figurare come valore di ritorno di un metodo o di una proprietà
         ma \textit{non} può essere un parametro di un metodo.
 \end{itemize}
+Durante la fase di generazione dello schema a partire dal codice Kotlin quindi, viene stabilita la corretta relazione tra tipo Kotlin e tipo GraphQL, e
+in caso in caso di incompatibilità la generazione dello schema fallisce. Se considerassimo per esempio il metodo \kotlin{Node<T>.getConcentration(m: Molecule): T},
+è da subito evidente che è incompatibile con uno schema GraphQL, sia per l'utilizzo dell'interfaccia \kotlin{Molecule} come parametro, sia
+per l'impiego del generico \kotlin{<T>} (il tipo di \kotlin{Concentration}).
+
+Il modello di Alchemist, facendo pesantemente utilizzo del polimorfismo attraverso interfacce e classi astratte, risulta quindi immediatamente
+incompatibile con uno schema GraphQL senza l'intervento di un livello ulteriore di astrazione. In questo scenario si interpongono i surrogati delle 
+classi di Alchemist, definiti come in \Cref{lst:gql-surrogate}. Ogni surrogato è generico per il tipo \kotlin{<S>}, ovvero l'oggetto Alchemist
+per il quale viene costruito l'\textit{adapter}. In questo modo, possiamo definire un modello surrogato come illustrato nel diagramma delle classi in
+\Cref{fig:surrogates-uml-full}. È importante notare come non tutti gli elementi del modello siano stati utilizzati per il sistema software complessivo,
+ma sono stati scelti quei componenti che potessero risultare funzionali ad una prima iterazione dell'architettura client server. L'implementazione
+di ulteriori componenti è lasciata per futuri lavori, come descritto in \Cref{sec:future-works}.
+
+\code{Kotlin}{./listings/GraphQLSurrogate.kt}{Definizione di un Surrogato Generico GraphQL per il modello di Alchemist.}{gql-surrogate}
+
+\paragraph{Surrogati e Comunicazioni da Client a Server}
+Costruendo i surrogati in questo modo, è possibile mappare un elemento del modello di Alchemist ad un surrogato, ma non viceversa. Per tutte le operazioni
+che prevedono l'invio di un surrogato dal client infatti, non sono presenti alcuni riferimenti all'oggetto originario (poiché si ricorda essere annotato con 
+\kotlin{@GraphQLIgnore open val origin: S}), portando il client ad un'impossibilità di creare e spedire un surrogato Alchemist così definito.
+A questo punto quindi, per tutte le operazioni che prevedono l'impiego di un surrogato in input (principalmente
+\textit{mutation}) è necessario definire una nuova classe istanziabile dal client e presente nello schema GraphQL con il tipo \texttt{input}. 
+In questo modo il client è in grado di definire surrogati e utilizzarli come input di operazioni, e riprendendo l'esempio di prima, il metodo
+per recuperare una concentrazione data una molecola sarà mappato in termini di surrogati in \kotlin{NodeSurrogate<T>.getConcentration(MoleculeInput): String},
+dove \kotlin{MoleculeInput} è l'oggetto in input istanziabile dal client. A questo punto sarà il server a definire le strategie di conversione
+tra oggetti di tipo \texttt{input} e il l'oggetto Alchemist corrispondente.
+
+%----------------------------------------%
+\centerimage{figures/Surrogate-Class-UML.png}{Modello di Alchemist rappresentato attraverso Surrogati GraphQL}{surrogates-uml-full}{1.0}
+%----------------------------------------%
+
+\subsection{Generiticità attraverso Serializzazione}\label{ssec:generics-serialize}
+Come definito in \Cref{ssec:model-adaptation}, le principali sfide da affrontare per l'adattamento del modello di Alchemist con uno schema che sia
+compatibile con le specifiche GraphQL sono principalmente l'impossibilità di utilizzare interfacce come input, e la mancanza di supporto per i tipi generici.
+Per quanto riguarda la prima, è risolvibile mediante i surrogati, mentre per la seconda è necessario un ragionamento più approfondito riguardo le motivazioni
+dietro l'uso di tali tipi generici.
+
+\paragraph{Position}
+In Alchemist, una posizione è definita come \kotlin{Position<P : Position<P>>}, utilizzando il cosiddetto "\textit{recursive bound}". Questa tecnica è
+principalmente utilizzata per imporre una struttura gerarchica specifica sul tipo delle posizioni. Ciò significa che ogni classe che implementa questa
+interfaccia definisce un tipo di \texttt{Position} raffinandone la definizione attraverso l'ereditarietà, consentendo una modellazione più dettagliata,
+adattata al dominio di uno specifico contesto (ad esempio, \texttt{Position2D} per modellazioni di spazi bidimensionali).
+
+Poiché la gerarchia delle posizioni è piuttosto limitata e ben definibile, per poter convertire una generica \texttt{Position} è sufficiente fornire
+allo schema GraphQL un surrogato per una posizione generica, e almeno una sua realizzazione concreta. Nel sistema raffigurato in \Cref{fig:surrogates-uml-full}
+è mostrato come si forniscano due realizzazioni dell'interfaccia \texttt{PositionSurrogate}: \texttt{GenericPositionSurrogate} e \texttt{Position2DSurrogate}.
+In questo modo, data una generica istanza di una \texttt{Position} all'interno di alchemist, possiamo mappare il corretto surrogato GraphQL come mostrato in \Cref{lst:pos-utils}
+a partire dal numero di dimensioni dello spazio della posizione. In questo modo è possibile definire, per ogni tipo di posizione, il relativo surrogato e definirne
+una strategia di conversione. Per tutti i tipi di posizione che non definiscono un surrogato, verranno rappresentati all'interno dello schema GraphQL come
+\texttt{GenericPositionSurrogate}.
+
+\code{Kotlin}{./listings/PositionSurrogateUtils.kt}{Conversione di una generica \texttt{Position} Alchemist, nel suo relativo surrogato.}{pos-utils}
+
+Il vantaggio principale nell'impiego di un'interfaccia all'interno di GraphQL, oltre alla definizione di un super-tipo per una serie di oggetti,
+risiede nella possibilità di utilizzare gli ``\textit{inline fragments}''. Questo operatore, utilizzabile all'interno di operazioni GraphQL, viene impiegato
+quando il valore di ritorno di un campo è un tipo composito (i.e. \texttt{interface} e \texttt{union}) e permette di specificare selezioni di campi differenti
+in base al tipo tornato a \textit{runtime}. In \Cref{lst:gql-fragments} è mostrato l'utilizzo di \textit{inline fragments} per le diverse possibili implementazioni
+di \texttt{Position}.
+
+\code{text}{./listings/Fragments.graphql}{Utilizzo di \textit{inline fragments} per il tipo \texttt{PositionSurrogate}}{gql-fragments}
 
 
-\code{Kotlin}{./listings/GraphQLSurrogate.kt}{caption}{gql-surrogate}
-
-
-Per quanto il \textit{mapping} tra un oggetto Alchemist sia efficace lato server (per via del riferimento all'oggetto originale), per tutte le operazioni
-che prevedono in input un surrogato, il mapping non risulta immediato.
-
-\subsection{Generiticità attraverso \textit{Custom Datatypes}}\label{ssec:custom-dtypes}
+\paragraph{Concentration}
 
 \section{Funzionamento}\label{sec:functioning}
 
