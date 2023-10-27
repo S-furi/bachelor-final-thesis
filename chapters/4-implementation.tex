@@ -60,7 +60,14 @@ tra oggetti di tipo \texttt{input} e il l'oggetto Alchemist corrispondente.
 \centerimage{figures/Surrogate-Class-UML.png}{Modello di Alchemist rappresentato attraverso Surrogati GraphQL}{surrogates-uml-full}{1.0}
 %----------------------------------------%
 
-\subsection{Generiticità attraverso Serializzazione}\label{ssec:generics-serialize}
+Per evitare la modifica del codice sorgente delle \ac{API} del modello di Alchemist, grazie alle \textit{extension functions} di Kotlin è possibile
+definire funzioni del tipo \kotlin{toXxxGraphQLSurrogate()} in grado di aggiungere un nuovo metodo ad un oggetto senza la necessità di ereditarietà
+o l'impiego di design patterns. In figura \Cref{fig:node-surrogate} è mostrata la funzione di conversione tra un nodo Alchemist e il relativo
+surrogato GraphQL, la quale non ha argomenti in input e crea un \texttt{NodeSurrogate} fornendo un riferimento a se stesso e l'\texttt{id} stesso del nodo.
+
+\code{Kotlin}{./listings/ToNodeSurrogate.kt}{Conversione da \texttt{Node} al suo relativo surrogato GraphQL}{node-surrogate}
+
+\subsection{Gestione del Polimorfismo}\label{ssec:generics-serialize}
 Come definito in \Cref{ssec:model-adaptation}, le principali sfide da affrontare per l'adattamento del modello di Alchemist con uno schema che sia
 compatibile con le specifiche GraphQL sono principalmente l'impossibilità di utilizzare interfacce come input, e la mancanza di supporto per i tipi generici.
 Per quanto riguarda la prima, è risolvibile mediante i surrogati, mentre per la seconda è necessario un ragionamento più approfondito riguardo le motivazioni
@@ -75,12 +82,13 @@ adattata al dominio di uno specifico contesto (ad esempio, \texttt{Position2D} p
 Poiché la gerarchia delle posizioni è piuttosto limitata e ben definibile, per poter convertire una generica \texttt{Position} è sufficiente fornire
 allo schema GraphQL un surrogato per una posizione generica, e almeno una sua realizzazione concreta. Nel sistema raffigurato in \Cref{fig:surrogates-uml-full}
 è mostrato come si forniscano due realizzazioni dell'interfaccia \texttt{PositionSurrogate}: \texttt{GenericPositionSurrogate} e \texttt{Position2DSurrogate}.
-In questo modo, data una generica istanza di una \texttt{Position} all'interno di alchemist, possiamo mappare il corretto surrogato GraphQL come mostrato in \Cref{lst:pos-utils}
-a partire dal numero di dimensioni dello spazio della posizione. In questo modo è possibile definire, per ogni tipo di posizione, il relativo surrogato e definirne
-una strategia di conversione. Per tutti i tipi di posizione che non definiscono un surrogato, verranno rappresentati all'interno dello schema GraphQL come
-\texttt{GenericPositionSurrogate}.
-
+%
 \code{Kotlin}{./listings/PositionSurrogateUtils.kt}{Conversione di una generica \texttt{Position} Alchemist, nel suo relativo surrogato.}{pos-utils}
+%
+In questo modo, data una generica istanza di una \texttt{Position} all'interno di Alchemist, possiamo mappare il corretto surrogato GraphQL come mostrato in \Cref{lst:pos-utils}
+a partire dal numero di dimensioni dello spazio della posizione. Questo esempio mira a delineare che, per ogni tipo di posizione, sarà sufficiente
+definire un surrogato basilare e una strategia di conversione per adattare un nuovo tipo di posizione (e.g. \texttt{GeoPosition} composto
+da latitudine e longitudine).
 
 Il vantaggio principale nell'impiego di un'interfaccia all'interno di GraphQL, oltre alla definizione di un super-tipo per una serie di oggetti,
 risiede nella possibilità di utilizzare gli ``\textit{inline fragments}''. Questo operatore, utilizzabile all'interno di operazioni GraphQL, viene impiegato
@@ -90,8 +98,31 @@ di \texttt{Position}.
 
 \code{text}{./listings/Fragments.graphql}{Utilizzo di \textit{inline fragments} per il tipo \texttt{PositionSurrogate}}{gql-fragments}
 
-
 \paragraph{Concentration}
+Il tipo delle concentrazioni in Alchemist, dipende esclusivamente dal tipo di \textit{Incarnation} selezionta, come descritto in \Cref{par:incarnation}.
+Diversamente da quanto accade per le posizioni, questo tipo non ha una interfaccia comune da cui tutte le classi ereditano, e perciò risulta più complessa
+la sua rappresentazione all'interno di uno schema GraphQL.
+
+Per ogni tipo non facilmente definibile all'interno di uno schema GraphQL, è possibile impiegare uno speciale tipo di dato chiamato
+\textit{Custom Scalar}\footnote{http://spec.graphql.org/draft/#sec-Scalars.Custom-Scalars}. Questo dato può non essere conforme alle specifiche, ma è
+necessario definirne strategie di interpretazione lato server prima di essere spedito, e allo stesso tempo definire lato ricevente come interpretare
+il \textit{custom scalar} ricevuto.
+
+Solitamente per inserire un custom scalar all'interno di un comunicazione GraphQL, esso viene serializzato come oggetto JSON, in modo tale da avere
+una rappresentazione univoca lato ricezione. In questo contesto si inserisce la libreria \texttt{kotlinx.serialization} in grado di fornire le funzionalità
+di serializzazione e deserializzazione anche in ambienti \textit{multiplatform}. \texttt{kotlinx.serialization} offre implementazioni di default per
+i tipi primitivi di Kotlin, comprendendo anche gran parte delle \textit{Collections} del linguaggio, risultando quindi una valida scelta per tutti quei
+casi dove il tipo delle concentrazioni è semplice. Per tutti i casi dove invece non è possibile effettuare una serializzazione con il \textit{serializer}
+di default, è necessario definirne una esplicita implementazione.
+
+L'idea di fondo è quella di fornire un surrogato nel \textit{source-set} \textit{commonMain} per il tipo \texttt{T} aderente alle specifiche GraphQL, e allo
+stesso tempo includere un \textit{serializer} di \texttt{kotlinx.serialization}: questo può essere fatto semplicemente includendo nella
+dichiarazione della classe l'annotazione \kotlin{@Serializable}. Definendo così il surrogato del contenuto della concentrazione, si è in grado di
+includere, spedire e ricevere correttamente un tipo \textit{custom} di GraphQL, serializzato in formato JSON per motivi di compatibilità con i protocolli
+impiegati dalle librerie. Allo stato attuale, se un \textit{serializer} non viene fornito per il tipo \texttt{T}, allora viene spedita la sua rappresentazione
+in stringa. In \Cref{lst:conc-serializer} è mostrato come venga effettuata la serializzazione del contenuto di una concentrazione.
+
+\code{Kotlin}{./listings/Serialization.kt}{Serializzazione del contenuto di una concentrazione in formato JSON}{conc-serializer}
 
 \section{Funzionamento}\label{sec:functioning}
 
