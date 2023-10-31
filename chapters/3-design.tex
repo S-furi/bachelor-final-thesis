@@ -19,7 +19,7 @@ Possiamo definire i ruoli come segue:
         interagendo con il modello di Alchemist esposto dalla componente \textit{Simulation}.
     \item \textbf{GraphQLClient}: insieme di elementi in grado di rendere possibile l'instaurazione di una connessione ad un server, ed effettuare su
         di esso operazioni GraphQL. Questo modulo fa parte del codice \textit{common}, rendendolo quindi indipendente dalla piattaforma.
-    \item \textbf{Client}: Versione \textit{platform specific} di un client GraphQL. Questa componente mantiene tutta la logica di sistema di un
+    \item \textbf{Client}: Versione \textit{platform specific} di un applicativo che sfrutti il client GraphQL comune. Questa componente mantiene tutta la logica di sistema di un
         servizio lato client, il quale sfrutta le API GraphQL di Alchemist.
 \end{itemize}
 
@@ -27,6 +27,27 @@ Possiamo definire i ruoli come segue:
 Il server ha lo scopo di gestione delle comunicazioni con i client e risoluzione delle richieste attraverso opportune interazioni con il modello
 di Alchemist. Di seguito verranno illustrate le componenti fondamentali e l'architettura nel suo complesso.
 %
+
+\subsection{Architettura}\label{ssec:server-arch}
+Il diagramma UML in \Cref{fig:server-uml} rappresenta l'architettura della componente server.
+%----------------------------------------%
+\centerimage{figures/Server-UML.png}{Architettura della componente server}{server-uml}{0.8}
+%----------------------------------------%
+Possiamo quindi descrivere il server come segue:
+\begin{itemize}
+    \item \textbf{GraphQLServer}: è la componente principale dell'intera architettura, si occupa principalmente di esporre un insieme di API GraphQL all'interno di una simulazione.
+        Questa componente mantiene quindi un riferimento alla simulazione corrente, attraverso la quale produce le istanze delle operazioni all'interno dello schema.
+    \item \textbf{SchemaOperations}: è uno dei due moduli che contribuiscono alla creazione dello schema GraphQL. Al suo interno risiedono tutte le operazioni dei tre tipi \textit{query},
+        \textit{mutation} e \textit{subscription}.
+    \item \textbf{SchemaModel}: modulo che contiene tutte le componenti del dominio di Alchemist adattate per la rappresentazione all'interno di uno schema GraphQL. Le motivazioni dietro 
+        la necessità di questo modulo saranno illustrate in \Cref{ssec:model-adaptation}, e più in dettaglio in \Cref{ssec:surrogates}.
+    \item \textbf{OutputMonitor}: interfaccia di Alchemist che mira al monitoraggio e all'osservazione sullo stato di una simulazione attraverso il design pattern \textit{Observer}~\cite{design-patterns}.
+    \item \textbf{EnvironmentSubscriptionMonitor}: Realizzazione dell'interfaccia \texttt{OutputMonitor}, la quale ha il compito di fornire una versione aggiornata dell'ambiente a tutte le operazioni
+        di tipo \textit{subscription} presenti nello schema. In questo modo viene implementato il trasferimento di dati in tempo reale ad ogni aggiornamento della simulazione. Il suo uso e funzionamento
+        sono descritti in dettaglio all'interno della \Cref{ssec:apis-functioning}.
+\end{itemize}
+
+
 \subsection{API GraphQL}\label{ssec:server-gql-apis}
 Come detto in precedenza, le API GraphQL costruite mirano a fornire una visuale ad alto livello di una o più simulazioni attraverso operazioni di tipo \textit{query},
 modificare lo stato della simulazione o elementi del dominio attraverso \textit{mutation} e sottoscriversi a cambiamenti degli stessi attraverso \textit{subscription}.
@@ -42,7 +63,7 @@ singolo endpoint (tipicamente \texttt{/graphql}) sul quale inviare l'operazione 
 Essendo GraphQL agnostico rispetto al protocollo utilizzato, le specifiche non definiscono un protocollo di trasporto standard, ma è ampiamente adottato
 e \textit{de-facto} standard l'impiego di HTTP.
 All'interno di questo contesto, gran parte dei sistemi GraphQL supportano sia il metodo GET, sia il metodo POST di HTTP. Il primo prevede l'inserimento
-dell'operazione GraphQL (formattata secondo lo schema sopra descritte) direttamente nell'URI dell'endpoint GraphQL. È evidente come però se la rappresentazione
+dell'operazione GraphQL (formattata secondo lo schema sopra descritto) direttamente nell'URI dell'endpoint GraphQL. È evidente come però se la rappresentazione
 in stringa dell'operazione sia abbastanza lunga, si incorre nell'errore \texttt{414 URI Too Long}. Proprio per questo motivo è largamente diffuso inserire
 nel \textit{payload} del metodo POST l'operazione GraphQL per evitare questo genere di problematiche.
 
@@ -58,7 +79,7 @@ Se la validazione ha esito positivo, verrà eseguita la relativa operazione di r
 \end{itemize}
 Nel caso di Alchemist, è sicuramente preferibile il secondo approccio per evitare che un cambiamento nel dominio applicativo debba essere propagato
 all'interno dello schema e tutti i relativi resolver.
-Per quanto questo approccio porti vantaggi per quanto riguarda l'astrazione dallo schema e dalla risoluzione delle operazioni, le specifiche GraphQL
+Per quanto questo approccio porti vantaggi riguardo l'astrazione dallo schema e dalla risoluzione delle operazioni, le specifiche GraphQL
 non permettono una rappresentazione uno a uno con il modello di Alchemist.
 
 \subsection{Adattamento del Modello}\label{ssec:model-adaptation}
@@ -80,7 +101,7 @@ di \textit{Object Adapter}. Un esempio di come viene applicato questo pattern è
 viene esposto dal server attraverso il suo surrogato, \texttt{NodeSurrogate}.
 %
 %----------------------------------------%
-\centerimage{figures/surrogate-demo.png}{Applicazione del pattern \textit{Adapter} per la classe \texttt{Node}.}{surrogate-demo}{0.5}
+\centerimage{figures/surrogate-demo.png}{Applicazione del pattern \textit{adapter} per la classe \texttt{node}.}{surrogate-demo}{0.5}
 %----------------------------------------%
 %
 Ogni surrogato estenderà la classe aperta (\texttt{open class}) \texttt{GraphQLSurrogate}, specificando come template l'oggetto del modello di Alchemist
@@ -88,13 +109,28 @@ incapsulato.
 %
 In questo modo tutti gli oggetti che figurano all'interno di Query, Mutation o Subscription saranno solo surrogati, i quali (lato server) delegano la
 risoluzione dell'operazione all'oggetto Alchemist sottostante.
-In \Cref{fig:server-class-uml} è mostrato come la componente server sia costruita. La classe principale del server \texttt{GraphQLServer}, la quale è responsabile della parte
-di messa in funzione del servizio GraphQL, si occupa anche di mappare correttamente le richieste in arrivo con le rispettive operazioni 
-descritte nello schema, rappresentate dalle interfacce \texttt{Query}, \texttt{Mutation} e \texttt{Subscription}.
+\newpage
+%
+\paragraph{Modello Risultante}
+Attraverso l'impiego di classi surrogate, il modello che viene a crearsi è rappresentato in \Cref{fig:surrogates-uml-full}
 
 %----------------------------------------%
-\centerimage{figures/server-class-uml.png}{Architettura ad alto livello del Server.}{server-class-uml}{0.4}
+\centerimage{figures/Surrogate-Class-UML.png}{Modello di Alchemist rappresentato attraverso Surrogati GraphQL}{surrogates-uml-full}{1.0}
 %----------------------------------------%
+
+Questo modello risulta una versione semplificata del modello di Alchemist implementato all'interno della \ac{JVM}, il quale a sua volta è la realizzazione del metamodello
+descritto in \Cref{ssec:alchemist}.
+
+L'elemento fondamentale del dominio è \texttt{EnvironmentSurrogate}, il quale mantiene al suo interno i nodi, associandogli la loro posizione, i vicinati composti dai nodi
+e gli eventuali \texttt{LayerSurrogate}. Questi ultimi sono in grado di calcolare la concentrazione in un determinato punto dello spazio che occupano. I nodi, rappresentati
+da \texttt{NodeSurrogate} e identificati da un \texttt{id} univoco, hanno al loro interno un insieme di molecule a cui è associata una concentrazione, un insieme di proprietà
+del nodo stesso e mantengono un riferimento alle reazioni a lui associate, descritte da \texttt{ReactionSurrogte}. Un insieme di nodi forma un \texttt{NeighborhoodSurrogate},
+il quale è caratterizzato da un nodo che ne rappresenta il centro. La posizione di un nodo nello spazio è rappresentata attraverso l'interfaccia \texttt{PositionSurorgate},
+la quale può essere del tipo specifico \texttt{Position2DSurrogate}, o nel caso più generico, una \texttt{GenericPositionSurrogate}.
+
+È importante specificare che per la realizzazione del sistema software, è stato scelto un sottoinsieme di elementi del dominio di Alchemist, i quali possano essere in grado
+di fornire una visione ad alto livello della simulazione corrente. In ogni caso, il software è costruito in modo tale che sia possibile una futura integrazione di ulteriori
+elementi che vengano reputati utili ai fini dell'impiego delle \ac{API} GraphQL, come illustrato nei lavori futuri in \Cref{sec:future-works}.
 
 \section{Client}\label{sec:client}
 Considerando il contesto \textit{Multiplatform} del sistema, ci si concentrerà su tutte quelle componenti che saranno condivise tra tutte le tipologie
@@ -106,6 +142,26 @@ Per poter effettuare operazioni GraphQL, un client deve essere in grado di
     \item effettuare un operazione GraphQL,
     \item attendere, recuperare e interpretare il risultato ottenuto.
 \end{enumerate*}
+
+\subsection{Architettura generale}\label{ssec:client-arch}
+L'architettura del client è illustrata in figura \Cref{fig:client-uml}. 
+
+%----------------------------------------%
+\centerimage{figures/Client-UML.png}{Architettura della componente client}{client-uml}{0.7}
+%----------------------------------------%
+
+Possiamo distinguere le seguenti componenti:
+\begin{itemize}
+    \item \textbf{GraphQLClient}: client GraphQL in grado di stabilire una connessione con il server, ed effettuare su di esso \textit{query}, \textit{mutation} e \textit{subscription}.
+        Per via delle varie componenti che possono essere aggiunte al client, come per esempio il modulo di \textit{WebSocket} per effettuare \textit{subscription}, la scelta del protocollo
+        di trasporto di GraphQL o l'aggiunta di un modulo di intercettamento dei pacchetti HTTP, il client GraphQL viene costruito mediante il pattern creazionale \textit{Builder}~\cite{design-patterns}.
+        Questa componente è all'interno del \textit{source set} comune (\textit{commonMain}).
+    \item \textbf{GeneratedModel}: modulo contenente il modello di Alchemist generato a partire dallo schema GraphQL esposto dal server, utilizzato da tutte le operazioni definite all'interno del client.
+    \item \textbf{ConcentrationContentSurrogate}: modulo speciale per definire, attraverso surrogati, i contenuti complessi delle concentrazioni, definendone anche le strategie di serializzazione e
+        deserializzazione. Il loro scopo è meglio descritto all'interno della \Cref{ssec:generics-serialize}. Insieme al client e al modello generato, questi risiedono all'interno del \textit{source set} \textit{commonMain}.
+    \item \textbf{ClientApplication}: questo sottosistema è l'implementazione specifica per una determinata piattaforma, la quale esponga un servizio che faccia uso del client GraphQL per l'esecuzione
+        di \ac{API}.
+\end{itemize}
 
 \subsection{Effettuazione operazioni GraphQL}\label{ssec:client-gql-apis}
 Se il server genera lo schema GraphQL a partire dal codice del modello, il client genera il codice del modello grazie allo schema. Il client infatti

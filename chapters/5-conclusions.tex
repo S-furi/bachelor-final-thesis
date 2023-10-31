@@ -1,5 +1,14 @@
 %!TEX root = ../thesis-main.tex
 \chapter{Conclusioni}\label{chap:conclusions}
 
+\section{Robe da fixare}
+
+\subsection{N+1 \textit{problem}}
+Generalmente in una singola richiesta, possono essere recuperati dati da una relazione uno a molti, come per esempio il recupero di un nodo e tutte le coppie molecola-concentrazione.
+Molto spesso però all'interno di queste relazioni, è necessario effettuare richieste separate per ogni elemento all'interno del sistema sottostante, provocando $N$ richieste per tutti
+gli $N$ elementi contenuti nella relazione. Questo può provocare un carico elevato all'interno del server, potenzialmente incrementando in modo significativo la latenza nelle comunicazioni.
+
+\subsection{Flows backpressure}\label{ssec:backpressure}
+
 \section{Lavori Futuri}\label{sec:future-works}
 

@@ -157,18 +157,22 @@ Kotlin mutliplatform può essere impiegato in molte applicazioni, ma prevalentem
 \end{itemize}
 
 \section{Analisi e Modello del Dominio}\label{sec:domain-model}
-Il dominio sottostante l'architettura server è stato descritto in \Cref{ssec:alchemist}. Il server quindi si pone come tramite tra la simulazione e le 
-richieste client, esponendo un insieme di API GraphQL richiamabili da client di varia natura. Come mostrato in \Cref{fig:component-1}, i client derivano
-tutti di una componente comune in grado di comunicare con l'\textit{endpoint} GraphQL, fornendo in un secondo momento l'implementazione specifica per
-la piattaforma che utilizzano.
+L'architettura software proposta dovrà operare al di sopra del simulatore Alchemist, il quale modello è stato ampiamente esplorato all'interno di \Cref{ssec:alchemist}.
+In questo contesto, è quindi dapprima necessario fornire un livello comunicativo tra il modello del dominio di Alchemist,
+e le componenti del sistema server, agendo quindi come \textit{controller} all'interno del paradigma architetturale \ac{MVC}.
+Il server sarà quindi responsabile dell'accesso e recupero dati nel contesto
+di una simulazione, e allo stesso tempo fornire un punto di accesso per le comunicazioni con i client. Queste comunicazioni devono permette il transito sia di informazioni, sia di comandi specifici che il
+server deve far attuare all'interno di  una simulazione. D'altra parte, il client deve essere in grado di stabilire e inviare correttamente questo tipo di operazioni al server.
 
 %----------------------------------------%
 \centerimage{figures/component-diagram-1.png}{Diagramma UML dei componenti dell'architettura di alto livello}{component-1}{0.8}
 %----------------------------------------%
+%
+In figura \Cref{fig:component-1} è illustrato il diagramma UML delle componenti del modello dell'applicativo. La componente server è composta a sua volta da un livello comunicativo con ciò che rappresenta
+una simulazione Alchemist, e l'esposizione di un interfaccia comune su cui i client possono stabilire una connessione. All'interno di questa interfaccia vengono stabilite tutte le operazioni eseguibili
+all'interno di una simulazione. Il client comprende un modulo principale incaricato di interporsi tra le applicazioni sviluppate potenzialmente in ambienti multi piattaforma, e il punto di accesso
+fornito dal server (\textit{endpoint}). Ciò che l'applicativo client vero e proprio esegue, è contenuto all'interno della componente \texttt{Client}.
 
-Per quanto riguarda il design delle \ac{API}, lo scopo principale è quello di dimostrare la fattibilità del sistema, provando di essere in grado
-di instaurare connessioni con un numero ragionevole di client soddisfacendone le richieste del tipo \textit{Query}, \textit{Mutation} e \textit{Subscription},
-gestendo opportunamente la comunicazione del successo o fallimento dell'operazione.
-Infine, i requisiti di supporto a simulazioni in modalità batch e vincolo sulle performance, saranno oggetto di lavori futuri sull'architettura
-esposta in questo documento, per via della loro complessa natura, rispettivamente di implementazione e analisi. (?)
 
+Siccome Alchemist prevede diverse modalità operative, come per esempio all'interno di una GUI o all'interno di un browser, la componente server deve poter essere in grado di essere lanciata solo attraverso
+specifica configurazione all'interno della simulazione. In questo modo il modulo verrà eseguito solo se richiesto esplicitamente.

@@ -49,7 +49,7 @@ Il meta-modello di Alchemist pu\aacc{o} essere riassunto nella \Cref{fig:alchemi
 \centerimagesource{figures/alchemist-model.png}{Meta-modello di Alchemist}{alchemist-metamodel}{1}{https://alchemistsimulator.github.io/explanation/metamodel/}
 %----------------------------------------%
 
-\paragraph{Incarnation}\label{par:incarnation}
+\paragraph{Incarnation}\label{}
 La chiave dell'estensibilit\aacc{a} di Alchemist risiede nella rappresentazione astratta di molecole e concentrazioni.
 All'interno di Alchemist una \textit{Incarnation} include una definizione per il tipo delle concentrazioni, un eventuale insieme di specifiche
 condizioni, azioni e (raramente) un ambiente e reazioni che operano su quei determinati tipi. In altre parole, un'incarnazione \aacc{e} una
@@ -71,7 +71,8 @@ la profonda conoscenza e comprensione dell'interazione di tutte le componenti.
 
 \section{Motivazioni e Obiettivi}\label{sec:motivations-objectives}
 Quanto discusso nella sezione precedente mette in luce come risulti di grande aiuto il controllo e la gestione dell'intero simulatore attraverso interfacce ad alto livello che astraggano dalla simulazione
-e le sue relazioni interne.
+e le sue relazioni interne. In questo modo, lo sviluppo di moduli aggiuntivi è supportato dal loro utilizzo, provocando sperabilmente un aumento di efficienza nella scrittura di codice che abbia la necessità
+di interagire con una simulazione.
 
 \subsection{Interazione Efficiente tra Piattaforme Diverse}\label{ssec:platforms-interactions}
 Mediante lo sviluppo di API al di sopra del modello di Alchemist, è possibile costruire meccanismi che permettano di interagire con le simulazioni in modo standardizzato per qualsiasi piattaforma che
@@ -86,4 +87,13 @@ servizi e funzionalità di quest'ultimo, attraverso un'insieme di API standardiz
 sistema di accesso e controllo efficiente delle simulazioni eseguite all'interno di Alchemist, in grado di porsi come canale comunicativo tra applicativi software terzi e il simulatore stesso.
 
 In generale il software prodotto deve focalizzarsi sulla produzione di un architettura generica ed estendibile in grado di adattarsi alla natura mutevole di Alchemist, fornendo allo stesso tempo
-un punto d'accesso consistente, flessibile ed efficiente.
+un punto d'accesso consistente, flessibile ed efficiente. In \Cref{fig:basic-usecase} sono raffigurati gli scenari di casi d'uso per questo genere di sistema di \ac{API}.
+%----------------------------------------%
+\centerimage{./figures/Basic-Usecase.png}{Diagramma dei casi d'uso del sistema di \ac{API} per Alchemist}{basic-usecase}{0.6}
+%----------------------------------------%
+%
+In generale, un utente, il quale può essere sia un utente terzo al sistema, sia un modulo di Alchemist, possono interagire con la simulazione attraverso un insieme di interfacce comuni, capaci di
+rendere disponibili informazioni riguardo la simulazione e i suoi elementi del dominio, controllare la simulazione (i.e. lanciare la simulazione, metterla in pausa e terminarla) e manipolare e interagire
+con gli elementi del sistema corrente. È quindi evidente che un utente generico può sia interagire con la simulazione attraverso l'impiego diretto delle \ac{API}, sia attraverso un modulo che le
+utilizza per fornire il servizio, sfruttando il vantaggio del sistema per cui non vi sono differenze nel fornire servizi e informazioni, poiché esse sono standardizzate per ogni tipo di utilizzatore e 
+piattaforma.

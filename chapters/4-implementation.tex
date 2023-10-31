@@ -39,9 +39,7 @@ Il modello di Alchemist, facendo pesantemente utilizzo del polimorfismo attraver
 incompatibile con uno schema GraphQL senza l'intervento di un livello ulteriore di astrazione. In questo scenario si interpongono i surrogati delle 
 classi di Alchemist, definiti come in \Cref{lst:gql-surrogate}. Ogni surrogato è generico per il tipo \kotlin{<S>}, ovvero l'oggetto Alchemist
 per il quale viene costruito l'\textit{adapter}. In questo modo, possiamo definire un modello surrogato come illustrato nel diagramma delle classi in
-\Cref{fig:surrogates-uml-full}. È importante notare come non tutti gli elementi del modello siano stati utilizzati per il sistema software complessivo,
-ma sono stati scelti quei componenti che potessero risultare funzionali ad una prima iterazione dell'architettura client server. L'implementazione
-di ulteriori componenti è lasciata per futuri lavori, come descritto in \Cref{sec:future-works}.
+\Cref{fig:surrogates-uml-full}.
 
 \code{Kotlin}{./listings/GraphQLSurrogate.kt}{Definizione di un Surrogato Generico GraphQL per il modello di Alchemist.}{gql-surrogate}
 
@@ -56,13 +54,9 @@ per recuperare una concentrazione data una molecola sarà mappato in termini di 
 dove \kotlin{MoleculeInput} è l'oggetto in input istanziabile dal client. A questo punto sarà il server a definire le strategie di conversione
 tra oggetti di tipo \texttt{input} e il l'oggetto Alchemist corrispondente.
 
-%----------------------------------------%
-\centerimage{figures/Surrogate-Class-UML.png}{Modello di Alchemist rappresentato attraverso Surrogati GraphQL}{surrogates-uml-full}{1.0}
-%----------------------------------------%
-
 Per evitare la modifica del codice sorgente delle \ac{API} del modello di Alchemist, grazie alle \textit{extension functions} di Kotlin è possibile
 definire funzioni del tipo \kotlin{toXxxGraphQLSurrogate()} in grado di aggiungere un nuovo metodo ad un oggetto senza la necessità di ereditarietà
-o l'impiego di design patterns. In figura \Cref{fig:node-surrogate} è mostrata la funzione di conversione tra un nodo Alchemist e il relativo
+o l'impiego di design patterns. In \Cref{lst:node-surrogate} è mostrata la funzione di conversione tra un nodo Alchemist e il relativo
 surrogato GraphQL, la quale non ha argomenti in input e crea un \texttt{NodeSurrogate} fornendo un riferimento a se stesso e l'\texttt{id} stesso del nodo.
 
 \code{Kotlin}{./listings/ToNodeSurrogate.kt}{Conversione da \texttt{Node} al suo relativo surrogato GraphQL}{node-surrogate}
@@ -99,12 +93,12 @@ di \texttt{Position}.
 \code{text}{./listings/Fragments.graphql}{Utilizzo di \textit{inline fragments} per il tipo \texttt{PositionSurrogate}}{gql-fragments}
 
 \paragraph{Concentration}
-Il tipo delle concentrazioni in Alchemist, dipende esclusivamente dal tipo di \textit{Incarnation} selezionta, come descritto in \Cref{par:incarnation}.
+Il tipo delle concentrazioni in Alchemist, dipende esclusivamente dal tipo di \textit{Incarnation} selezionta, come descritto in \Cref{ssec:alchemist}.
 Diversamente da quanto accade per le posizioni, questo tipo non ha una interfaccia comune da cui tutte le classi ereditano, e perciò risulta più complessa
 la sua rappresentazione all'interno di uno schema GraphQL.
 
 Per ogni tipo non facilmente definibile all'interno di uno schema GraphQL, è possibile impiegare uno speciale tipo di dato chiamato
-\textit{Custom Scalar}\footnote{http://spec.graphql.org/draft/#sec-Scalars.Custom-Scalars}. Questo dato può non essere conforme alle specifiche, ma è
+\textit{Custom Scalar}\footnote{http://spec.graphql.org/draft/\#sec-Scalars.Custom-Scalars}. Questo dato può non essere conforme alle specifiche, ma è
 necessario definirne strategie di interpretazione lato server prima di essere spedito, e allo stesso tempo definire lato ricevente come interpretare
 il \textit{custom scalar} ricevuto.
 
@@ -121,10 +115,74 @@ dichiarazione della classe l'annotazione \kotlin{@Serializable}. Definendo così
 includere, spedire e ricevere correttamente un tipo \textit{custom} di GraphQL, serializzato in formato JSON per motivi di compatibilità con i protocolli
 impiegati dalle librerie. Allo stato attuale, se un \textit{serializer} non viene fornito per il tipo \texttt{T}, allora viene spedita la sua rappresentazione
 in stringa. In \Cref{lst:conc-serializer} è mostrato come venga effettuata la serializzazione del contenuto di una concentrazione.
-
+%
 \code{Kotlin}{./listings/Serialization.kt}{Serializzazione del contenuto di una concentrazione in formato JSON}{conc-serializer}
+%
+Attraverso la chiamata a funzione \kotlin{serializer(content::class.java)}, si cerca di utilizzare il \texttt{serializer} per la classe del tipo \texttt{T},
+e in caso non venga trovato, verrà lanciata una \texttt{SerializationException}, la quale verrà catturata per poter fornire una rappresentazione in stringa
+del tipo.
+
+Per motivi di semplicità e leggerezza dello schema e della notazione, siccome il contenuto delle concentrazioni è sempre serializzato in formato JSON sotto forma di stringa,
+non è necessario definire un nuovo \textit{custom scalar} per rappresentarlo, ma è sufficiente considerarlo come una semplice stringa, opportunamente dettagliando la
+documentazione riguardo che cosa è rappresentato all'interno della stringa stessa.
 
 \section{Funzionamento}\label{sec:functioning}
+\subsection{Web Server}\label{ssec:web-server}
+Il servizio di \ac{API} è reso disponibile all'esterno attraverso un web server implementato attraverso \textit{Ktor} \footnote{https://ktor.io/}. Questa libreria
+offre un \textit{framework} leggero e altamente configurabile per al creazione di servizi web e, più in generale, di applicazioni \textit{backend}. Generalmente un
+servizio Ktor si compone di un insieme di moduli, ognuno dei quali solitamente ricopre ruoli specifici per la messa in funzione di un servizio web. Il \textit{backend}
+per l'esposizione di \ac{API} GraphQL comprende 2 moduli essenziali: un modulo di \textit{routing} e un modulo per la configurazione di GraphQL.
+Il primo modulo ha il compito di esporre i tre \textit{endpoint} principali su cui opera il server GraphQL:
+\begin{itemize}
+    \item \texttt{/graphql}: \textit{endpoint} dal quale arrivano le richieste GraphQL di tipo \textit{query} e \textit{mutation}. Le richieste devono
+        essere effettuate tramite il protocollo HTTP, preferibilmente attraverso il metodo POST includendo nel payload l'operazione richiesta.
+    \item \texttt{/sdl}: \textit{endpoint} per l'introspezione del \ac{SDL}, ovvero lo schema GraphQL esposto dal server, contenente il modello e le operazioni fornite.
+    \item \texttt{/subscriptions}: \textit{endpoint} speciale per l'esecuzione di operazioni del tipo \textit{subscription}. A differenza degli altri, questo è interrogabile
+        solo attraverso il protocollo \textit{WebSocket}, affinché sia possibile mantenere una connessione persistente in modo efficace.
+\end{itemize}
+
+È all'interno di questo modulo che le richieste client arrivano e vengono approvate (i.e. verifica se le richieste sono ben formate). Successivamente queste vengono inviate
+al modulo responsabile dell'esecuzione delle operazioni GraphQL, il secondo modulo di cui si compone il web server. Il suo compito principale è quello di validare le richieste
+al di sopra dello schema, e in caso di esito positivo, provvedere al recupero dei dati richiesti e infine l'invio della risposta al client richiedente. All'interno di questo modulo
+risiede il cuore dell'architettura del server, le cui funzioni stanno alla base del successo dell'impiego delle \ac{API} GraphQL, come esposto nella sezione seguente.
+
+\subsection{Esecuzione e Interrogazione delle API}\label{ssec:apis-functioning}
+Le sezioni precedenti hanno illustrato il processo di ideazione, design e implementazione. In questa sezione verrà coperto il funzionamento generale dell'intera architettura,
+sia lato server, sia l'interrogazione da parte del client e l'interpretazione dei risultati ottenuti.
+
+\paragraph{Server}
+Procedendo attraverso un approccio \textit{code-first}, il server prima di essere messo in funzione effettua un'operazione di generazione dello schema, grazie ad una componente
+software denominata \texttt{SchemaGenerator} implementata attraverso la libreria GraphQL Kotlin. Il compito di questa componente è di generare a \textit{runtime} tutte le componenti
+del modello indicate all'interno del \textit{build} file in modo tale che siano utilizzabili all'interno di un architettura GraphQL. Verrà quindi dapprima effettuato un controllo
+delle componenti sulle specifiche GraphQL, e se il controllo va a buon fine, vengono definiti i relativi \textit{resolver} e \textit{fetcher} per ogni componente elaborata.
+Il primo di questi ha il compito di interpretare le richieste GraphQL in arrivo che riguardano quel determinato elemento del dominio, effettuando quindi un \textit{parsing}
+della richiesta stessa e dopo aver interpretato il suo contenuto ridireziona la richiesta al \textit{fetcher}, il quale invece ha il compito di recuperare i dati
+richiesti dall'operazione all'interno del sistema, secondo la struttura definita all'interno della \textit{query} inviatagli dal client. In caso invece la richiesta venga validata
+negativamente, un errore verrà spedito, in modo tale che sia possibile un'interpretazione dell'errore anche lato client.
+
+Questo è quanto accade con operazioni del tipo \textit{query} e \textit{mutation}. Per tutte le operazioni di \textit{subscription}, è necessario stabilire l'evento che scaturisce
+l'invio di un dato aggiornato. Come precedentemente anticipato in \Cref{ssec:server-arch}, mediante \texttt{EnvironmentSubscriptionMonitor} è possibile ottenere una versione
+dell'ambiente aggiornata ad ogni step che la simulazione esegue. Questo viene effettuato mediante una chiamata periodica da parte della simulazione ad ogni \texttt{OutputMonitor}
+ad essa collegato, del metodo \kotlin{stepDone}, appunto ogni volta che uno step viene effettuato. In \Cref{fig:monitor-seq} è illustrato un diagramma di sequenza dettagliato
+per ogni operazione di \textit{subscription} effettuata dal client.
+
+\centerimage{./figures/Monitor-Sequence.png}{Diagramma di sequenza del funzionamento di una \textit{subscription} mediante l'uso di \texttt{EnvironmentSubscriptionMonitor}}{monitor-seq}{1.0}
+
+Prima della messa in funzione del server, l'istanza di \kotlin{EnvironmentSubscriptionMonitor} viene collegata alla simulazione e preserva un riferimento all'interno del server GraphQL.
+Una volta che la simulazione viene azionata, è possibile effettuare \textit{subscription}. Queste ultime prevedono l'uso di strutture in grado di emettere una serie di valori in modo 
+asincrono e duraturo nel tempo: i \texttt{Flow} Kotlin. La natura dei \texttt{Flow} è di essere strutture dette \textit{cold}, ovvero che l'invio vero e proprio di valori avviene solamente
+nel momento in cui esso inizia ad essere collezionato. Una volta che esso viene collezionato, viene anche consumato, risultando in un impossibilità di condivisione dello stesso.
+Nel caso di un server GraphQL, il quale necessita di rispondere ad un numero esiguo di client con lo stesso tipo di informazioni, è necessaria una struttura che sia condivisibile
+cioè che non venga consumata nel momento in cui viene collezionata. All'interno di questo contesto si inseriscono i \texttt{MutableSharedFlow}, i quali estendono le funzionalità
+di un \texttt{Flow}; in particolare essi forniscono un supporto di condivisione del flusso di dati, senza che venga consumato dai collettori, ma essendo una struttura mutabile,
+l'invio è detto \textit{hot}, cioè che il flusso di dati viene spedito nonostante ci sia qualche collettore dall'altra parte. Per quanto questa caratteristica sia in alcuni casi
+non voluta, poiché il server invierà sempre dati nel flusso anche se nessun client ha effettuato la sottoscrizione, essa risulta utile per tutti quei casi dove si può manifestare
+\textit{backpressure}, ovvero che il client non riesce a stare al passo con i dati inviati dal server. In questo contesto infatti, siccome gli elementi nel flusso vengono inviati
+sempre e in modo costante, il server non verrà bloccato da client che richiedono molto tempo per l'elaborazione dei dati stessi, lasciando il compito di gestire il \textit{backpressure}
+lato client, come descritto in \Cref{ssec:backpressure}.
+
+\paragraph{Client}
+
 
 \section{Verifica}\label{sec:testing}
 
