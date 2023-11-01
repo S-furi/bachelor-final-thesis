@@ -126,6 +126,14 @@ Per motivi di semplicità e leggerezza dello schema e della notazione, siccome i
 non è necessario definire un nuovo \textit{custom scalar} per rappresentarlo, ma è sufficiente considerarlo come una semplice stringa, opportunamente dettagliando la
 documentazione riguardo che cosa è rappresentato all'interno della stringa stessa.
 
+\paragraph{Deserializzazione lato Client}
+Il vantaggio di porre il surrogato per il contenuto della concentrazione all'interno del package \textit{commonMain} risiede nel poter riutilizzare il \texttt{serializer}
+sia per effettuare l'\textit{ecnoding} in formato JSON all'interno del codice \ac{JVM} del server, sia per deserializzare il JSON ricevuto lato client all'interno
+dell'implementazione per una specifica piattaforma. In questo modo lato client viene ricevuta una concentrazione serializzata in JSON di cui ne si conosce il tipo,
+ed è quindi possibile deserializzarla attraverso una chiamata a funzione del metodo \kotlin{Json.decodeFromString<T>(data: String)}, dove \kotlin{<T>} è il tipo
+effettivo dell'oggetto da deserializzare. È importante notare come è necessaria una profonda conoscenza del tipo in arrivo lato client, effettuata consultando
+la documentazione relativa all'operazione chiamata all'interno dello Schema GraphQL e in base alla \textit{incarnation} per la simulazione in esecuzione all'interno di Alchemist.
+
 \section{Funzionamento}\label{sec:functioning}
 \subsection{Web Server}\label{ssec:web-server}
 Il servizio di \ac{API} è reso disponibile all'esterno attraverso un web server implementato attraverso \textit{Ktor} \footnote{https://ktor.io/}. Questa libreria
@@ -182,7 +190,34 @@ sempre e in modo costante, il server non verrà bloccato da client che richiedon
 lato client, come descritto in \Cref{ssec:backpressure}.
 
 \paragraph{Client}
+Come già illustrato, il funzionamento del client è in linea con quanto riassunto all'interno dello schema UML in \Cref{fig:client-func}. Operazioni preliminare è lo \textit{schema introspection},
+eseguibile solo una volta che il server è in esecuzione e in ascolto su un determinato host e porta. Successivamente è possibile scrivere e inserire all'interno del package \textit{commonMain}
+operazioni GraphQL in base a ciò che espone il server grazie allo schema, potendo validare sullo stesso a tempo di compilazione, anche la struttura e correttezza delle operazioni scritte.
+Queste operazioni sono all'interno di file con estensione ``\texttt{.graphql}'', il quale è scritto attraverso il \textit{Query Language} di GraphQL in grado di stabilire lato client
+la struttura desiderata dei dati che saranno spediti richiamando una specifica operazione del server. In \Cref{lst:demo-schema} sono rappresentati (per fini illustrativi all'interno dello stesso
+file), una parte della dichiarazione dello schema di un elemento del dominio e le possibili operazioni di tipo \texttt{Query}, e una \textit{query} lato client.
+All'interno dello schema viene definita l'operazione \texttt{nodeById(nodeId: Int!)} di tipo \textit{query}, la quale dato un \texttt{id} ritorna un oggetto di tipo \texttt{NodeSurrogate}
+corrispondente. All'infuori dello schema viene definita una \textit{query} lato client in grado di richiamare l'operazione esposta dal server, la quale accetta in input un intero rappresentante
+l'\texttt{id} del nodo, e ritorna solo alcuni dei campi dell'oggetto \texttt{NodeSurrogate}. Questo è il grande vantaggio nell'utilizzo di GraphQL, poiché si cerca di limitare al massimo
+il numero di informazioni non necessarie che transitano in rete da client a server, evitando il fenomeno dell'\textit{over-fetching}.
 
+Una volta che lo schema e le operazioni GraphQL sono all'interno delle risorse di \textit{commonMain}, è possibile generare i sorgenti derivanti dallo schema e dalle operazioni definite,
+attraverso Apollo Kotlin. In questo modo è possibile già a tempo di compilazione avere un \textit{type checking} all'interno del codice Kotlin scritto lato client che faccia uso delle operazioni
+definite. Infine, i sorgenti generati saranno utilizzati per poter far effettuare ad Apollo Kotlin, a runtime, il mapping tra oggetto definito nello schema e in arrivo dopo aver chiamato un'\ac{API},
+e il relativo oggetto generato in fase di compilazione.
 
+All'interno del client quindi, il lavoro di instaurazione delle comunicazioni, \textit{parsing} delle operazioni e successiva validazione e interpretazione del risultato ottenuto dopo l'esecuzione
+di un'operazione GraphQL, è completamente delegato alla libreria Apollo Kotlin, lasciando il programmatore ad un alto livello di astrazione.
+
+\code{text}{listings/DemoSchema.graphql}{Some Operations upon schema}{demo-schema}
+
+\clearpage
 \section{Verifica}\label{sec:testing}
+Per la verifica del software sono stati effettuati Unit test per tutti gli elementi surrogati del modello. In particolare, i test hanno coperto la correttezza dell'effettiva 
+produzione di oggetti surrogati, e successivamente sono stati valutati comportamenti di tali oggetti in relazione all'oggetto Alchemist incapsulato. Questo è stato fatto
+utilizzando un insieme di simulazioni di test, le quali producono un determinato modello di Alchemist. A partire da questo modello, vengono generati i relativi surrogati
+attraverso le \textit{extension function}. A questo punto sono state comparate le caratteristiche del modello surrogato e quello originario in fase iniziale, e in seguito
+a modifiche all'interno dell'ambiente.
 
+Per quanto riguarda i test relativi alle operazioni GraphQL esposte, sia lato client sia lato server sono stati effettuati test manuali, poiché i framework di testing per
+mock server / client non sono molto maturi e in generale ho avuto poco tempo :). Same con i test di integrazione.

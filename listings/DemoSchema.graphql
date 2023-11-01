@@ -1,0 +1,26 @@
+# Schema.graphqls
+"A node in the environment"
+type NodeSurrogate {
+  contains(molecule: MoleculeInput!): Boolean!
+  contents: MoleculeToConcentrationMap!
+  getConcentration(molecule: MoleculeInput!): String
+  id: Int!
+  moleculeCount: Int!
+  properties: [String!]!
+  reactions: [ReactionSurrogate!]!
+}
+
+type Query {
+    "Returns a node with the given id"
+    nodeById(nodeId: Int!): NodeSurrogate!
+}
+
+#-------------------------------------------------
+# NodeQuery.graphql
+query NodeQuery($nodeId: Int!) {
+    nodeById(nodeId: $nodeId) {
+        id
+        moleculeCount
+        properties
+    }
+}
