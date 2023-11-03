@@ -219,5 +219,14 @@ utilizzando un insieme di simulazioni di test, le quali producono un determinato
 attraverso le \textit{extension function}. A questo punto sono state comparate le caratteristiche del modello surrogato e quello originario in fase iniziale, e in seguito
 a modifiche all'interno dell'ambiente.
 
-Per quanto riguarda i test relativi alle operazioni GraphQL esposte, sia lato client sia lato server sono stati effettuati test manuali, poiché i framework di testing per
-mock server / client non sono molto maturi e in generale ho avuto poco tempo :). Same con i test di integrazione.
+Per quanto riguarda le operazioni GraphQL, si è scelto un approccio meno automatizzato, poiché le librerie per l'esecuzione di un client e server GraphQL seppur disponendo di
+framework di testing, richiedono molto lavoro ulteriore per la creazione di \textit{Mock Server} per simulare la risposta o l'esecuzione di operazioni GraphQL. Le tempistiche
+di progetto hanno portato l'implementazione di queste funzionalità aggiuntive di testing per lavori futuri.
+L'approccio che si è utilizzato per il testing di queste operazioni è effettuato attraverso l'impiego del \textit{playground} GraphiQL\footnote{https://github.com/graphql/graphiql},
+il quale permette di collegarsi al server GraphQL in esecuzione ed effettuare \textit{introspection} dello schema, per poter consultare tutta la struttura del modello e le operazioni
+fornite. In un secondo momento è possibile effettuare operazioni GraphQL lato client richiamando \textit{query}, \textit{mutation} e \textit{subscription} esposte dal server, specificandone
+quindi l'insieme di campi che si desiderano ricevere. Oltre al testing effettivo delle operazioni, GraphiQL risulta molto utile in fase di sviluppo delle operazioni client. È buona
+norma infatti definire all'interno del \textit{playground} un'operazione client, verificarne l'effettivo risultato che si ottiene una volta eseguita ed esportare l'operazione
+all'interno delle risorse client del progetto. Seguendo questo approccio, ogni operazione aggiunta all'insieme delle operazioni client è già in qualche modo validata sullo schema
+da parte dello sviluppatore, fornendo inoltre una visione complessiva del risultato ottenuto richiamando quell'operazione.
+
