@@ -1,14 +1,42 @@
 %!TEX root = ../thesis-main.tex
 \chapter{Conclusioni}\label{chap:conclusions}
+L'insieme di quanto discusso all'interno di questo elaborato hanno portato alla costruzione di un sistema software in grado di fornire meccanismi efficienti per l'accesso
+e il controllo di una simulazione all'interno di Alchemist. Questo è stato reso possibile grazie ad un attento studio delle architetture per lo sviluppo e interrogazione
+di \ac{API}, prediligendo un approccio fortemente strutturato grazie a GraphQL. Il suo impiego ha reso necessaria un'analisi approfondita del dominio applicativo di Alchemist,
+grazie al quale sono state definite linee guida per la loro rappresentazione all'interno di uno schema conforme alle specifiche GraphQL.
 
-\section{Robe da fixare}
+Allo stato attuale, il progetto mira a fornire una solida componente server in grado di effettuare operazioni basilari all'interno di una simulazione, la quale mira a facilitare
+l'aggiunta di ulteriori operazioni e funzionalità, riducendo al minimo le modifiche all'architettura esistente. Alcune di queste funzionalità aggiuntive sono descritte all'interno
+della \Cref{sec:future-works}.
 
-\subsection{N+1 \textit{problem}}
-Generalmente in una singola richiesta, possono essere recuperati dati da una relazione uno a molti, come per esempio il recupero di un nodo e tutte le coppie molecola-concentrazione.
-Molto spesso però all'interno di queste relazioni, è necessario effettuare richieste separate per ogni elemento all'interno del sistema sottostante, provocando $N$ richieste per tutti
-gli $N$ elementi contenuti nella relazione. Questo può provocare un carico elevato all'interno del server, potenzialmente incrementando in modo significativo la latenza nelle comunicazioni.
+Come dimostrazione del funzionamento dell'architettura software prodotta, viene presentata una simulazione presa dal tutorial di Alchemist\footnote{https://alchemistsimulator.github.io/tutorials/basics/index.html},
+al cui interno è presenta una griglia di nodi in grado di giocare a \textit{dodgeball}. Il funzionamento è piuttosto semplice: il programma inizia la simulazione con una
+palla, e l'obiettivo è quello di lanciarla ad un vicino in modo casuale. Ogni nodo che viene colpito, acquisisce un punto, incrementa il proprio punteggio e lancia nuovamente la palla.
 
-\subsection{Flows backpressure}\label{ssec:backpressure}
+\centerimage{./figures/ClientApp-Demo.png}{Applicativo client per la visualizzazione di statistiche riguardo la simulazione \textit{Dodgeball}}{client-demo}{0.7}
 
 \section{Lavori Futuri}\label{sec:future-works}
+L'obiettivo di questo elaborato è stato quello di dimostrare la fattibilità ed implementare un'architettura software per l'esposizione di \ac{API} al di sopra del simulatore Alchemist,
+provvedendo a garantire meccanismi di estensibilità sia da un punto di vista delle operazioni eseguibili, sia per quanto riguarda il modello di Alchemist.
+Attraverso questo sistema software così costruito, è possibile operare su di esso per effettuare miglioramenti ed estensioni delle funzionalità, riassunte nei seguenti punti:
 
+\begin{itemize}
+    \item \textbf{N+1 \textit{problem}}: nei sistemi GraphQL si può verificare durante l'esecuzione di una \textit{query} che questa richieda una risorsa, e per ogni record
+        restituito, viene effettuata un'ulteriore query per recuperare informazioni correlate, portando a un numero esponenziale di chiamate al sottosistema per il recupero dei dati,
+        provocando per una operazione, ulteriori $N$ query, causando ciò che viene appunto delineato $N+1$ \textit{problem}. All'interno di GraphQL Kotlin è possibile mitigare questa
+        problematica mediante appositi \textit{data loader}, i quali permettono di effettuare \textit{batching di operazioni} e offrire inoltre un livello di \textit{caching} per le
+        operazioni più frequenti. Questo può quindi comportare un ampio beneficio in termini di prestazioni generali del sottosistema, sia in termini di latenza di risposte,
+        sia per quanto riguarda l'\textit{overhead} generale nella risoluzione delle operazioni.
+    \item \textbf{Gestione del \textit{backpressure}}: nei casi in cui il tasso di invio delle informazioni dal server al client sia maggiore di quanto il client stesso riesca a gestire,
+        è necessario fornire quest'ultimo di strategie in grado di gestire il fenomeno del \textit{backpressure}. Questo può avvenire mediante politiche ad-hoc al momento della ricezione
+        del \texttt{Flow}, come per esempio la scelta dell'elemento più recente all'interno del canale comunicativo, oppure prenderne solo alcuni campioni. La strategia adottata
+        dipenderà da sistema a sistema.
+    \item \textbf{Miglioramento strategie di Serializzazione}: per come è stato implementata la logica di serializzazione di una concentrazione, essa funziona con i tipi primitivi di Kotlin
+        e le classi annotate attraverso l'annotazione \kotlin{@Serializable}. Per quanto questa soluzione sia efficace nei casi più semplici, esiste un certo numero di situazioni dove
+        questo approccio risulti non viabile per via di alcuni fattori, come per esempio la presenza di ereditarietà tra gli elementi (necessitando di un \texttt{PolymorphicSerializer}) o
+        anche l'impiego di istanze specifiche delle \textit{collection} di Kotlin (e.g. \texttt{ArrayList} non è serializzabile direttamente ma \texttt{List} lo è). All'interno di questo contesto
+        è necessaria la valutazione di strategie più avanzate di serializzazione, le quali non hanno trovato il tempo di essere approfondite durante l'elaborazione di questo progetto.
+    \item \textbf{Ampliamento del modello}: allo stato attuale, l'architettura GraphQL implementata comprende una semplice sottoparte dell'intero modello di Alchemist. L'aggiunta di ulteriori
+        elementi come \textit{linking rule}, \textit{action} e \textit{reaction} renderanno il sistema in grado di rappresentare l'intero meta-modello di Alchemist con la corretta interpretazione
+        in termini di specifiche GraphQL.
+\end{itemize}

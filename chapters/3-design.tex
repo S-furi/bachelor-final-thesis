@@ -198,5 +198,16 @@ Di seguito vengono elencate le funzionalità basilari che il client deve poter e
 \end{itemize}
 
 \subsection{Client \textit{Kotlin/JS}}\label{ssec:kt-js-client}
-Come dimostrazione del funzionamento dell'intero sistema software costruito, si provvede un'implementazione di un client all'interno di un ambiente
-web, sfruttando il \textit{transpiler} (i.e. generazione di codice JavaScript/TypeScript a partire da codice Kotlin) nativo di Kotlin Mutliplatform.
+Come dimostrazione del funzionamento dell'intero sistema software costruito, si provvede un'implementazione di un client all'interno di un ambiente web, sviluppato grazie
+al supporto di Kotlin Multiplatform per piattaforme Kotlin/JS. All'interno di questo modulo, deve essere resa disponibile un'interfaccia grafica in grado di riassumere
+le operazioni chiave eseguibili sul server GraphQL. In questo modo un utente deve essere in grado di:
+\begin{itemize}
+    \item Gestione della simulazione corrente attraverso l'uso delle rispettive \textit{mutation} GraphQL.
+    \item Visualizzare a schermo dati e informazioni riguardo elementi del dominio.
+\end{itemize}
+
+All'interno di questo contesto è necessario definire una nuova \textit{route} all'interno del server che carichi la pagina HTML per l'esecuzione di tali operazioni, e per
+semplicità verrà mappata la rotta ``\texttt{/}'' all'indirizzo del server. In questo un client può visitare questa pagina collegandosi direttamente all'indirizzo e host del server.
+Attraverso questa pagina sarà quindi possibile l'esecuzione di operazioni di gestione della simulazione attraverso una serie di bottoni, mentre per la visualizzazione di dati e
+informazioni può essere implementata attraverso una libreria grafica per la creazione di grafici.
+
