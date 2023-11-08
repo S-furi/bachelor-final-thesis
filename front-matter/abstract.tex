@@ -1,5 +1,32 @@
 %!TEX root = ../thesis-main.tex
 
 \begin{abstract}	
-Max 2000 characters, strict.
+    All’interno dei sistemi software moderni è di cruciale importanza la
+    possibilità di monitorare e controllare un’intero sistema nella maniera più
+    efficiente possibile. I principali meccanismi di controllo e interrogazione
+    dei sistemi possono comprendere il design e l’implementazione di \ac{API},
+    le quali costituiscono un solido punto di appoggio per le comunicazioni tra
+    le diverse componenti sotware di un sistema. All’interno di questo
+    elaborato, viene presentata la realizzazione di un servizio di API
+    all’interno di Alchemist, un simulatore stocastico realizzato all’interno
+    della \ac{JVM}.
+
+    Il servizio di API mira ad esporre verso l’esterno un insieme di
+    informazioni inerenti una simulazione all’interno di Alchemist, e allo
+    stesso tempo fornisce meccanismi di controllo della stessa, mantenendo un
+    implementazione che non sia dipendente dalla piattaforma utilizzata
+    mediante l’uso di Kotlin Mutliplatform.
+
+    All’interno di questo documento, verranno illustrate le strategie di design
+    e architetturali per la realizzazione di un tale sistema attraverso il
+    paradigma GraphQL, il quale fornisce un \textit{Query Language} in grado di
+    stabilire con esattezza la struttura dei dati che un client deve ricevere
+    dal sistema di API. Sono quindi approfondite motivazioni dietro la scelta
+    di tale paradigma, e vengono  definite le operazioni di massima che il
+    sistema deve fornire. Successivamente verrano coperte estensivamente le
+    sfide implementative e di compatiblità causate dalla natura complessa di
+    Alchemist, e la rigida e semplice struttura di uno schema GraphQL. Infine,
+    sono illustare le future estensioni possibili del sistema costruito,
+    illustrandone scopi e benefici che possono apportare al sistema,
+    richiedendo pochi o nessun cambiamento all’architettura proposta.
 \end{abstract}
