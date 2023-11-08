@@ -14,6 +14,15 @@ al cui interno è presenta una griglia di nodi in grado di giocare a \textit{dod
 palla, e l'obiettivo è quello di lanciarla ad un vicino in modo casuale. Ogni nodo che viene colpito, acquisisce un punto, incrementa il proprio punteggio e lancia nuovamente la palla.
 
 \centerimage{./figures/ClientApp-Demo.png}{Applicativo client per la visualizzazione di statistiche riguardo la simulazione \textit{Dodgeball}}{client-demo}{0.7}
+L'applicativo mostrato in \Cref{fig:client-demo} mostra l'interfaccia all'interno del web browser contente un pannello di controllo contenente 4 bottoni e uno spazio adibito
+ad un Grafico che mostri delle caratteristiche della simulazione corrente. Il grafico è generato attraverso l'uso di Lets-Plot Kotlin\footnote{https://github.com/JetBrains/lets-plot-kotlin},
+la quale è stata approfondita estensivamente all'interno dell'attività di tirocinio curricolare\footnote{https://s-furi.github.io/uni-internship}. Di seguito una breve descrizione delle
+funzionalità proposte: al caricamento della pagina, è possibile sottoscriversi in un qualsiasi momento tramite il pulsante \textit{subscribe}, oppure avviare la simulazione mediante \textit{play}.
+Una volta che la simulazione sarà fatta partire, all'interno del grafico verranno visualizzate le posizioni di un vicinato, in questo caso del vicinato al quale appartiene il nodo
+con \texttt{id} pari a 1. La simulazione non prevede cambiamenti di posizioni durante l'esecuzione, ma muovendo il cursore al di sopra di un nodo è possibile monitorare lo stato
+della molecola e concentrazione ad esso associate, dove nella prima è contenuto il numero di \textit{hit} effettuati fino a quel momento. Infine, i restanti due pulsanti hanno rispettivamente
+la funzione di mettere in pausa e terminare definitivamente la simulazione. In caso di errori durante la simulazione, come per esempio la richiesta di avviamento della simulazione
+dopo che è stata fatta terminare, verrano visualizzati a schermo all'utente.
 
 \section{Lavori Futuri}\label{sec:future-works}
 L'obiettivo di questo elaborato è stato quello di dimostrare la fattibilità ed implementare un'architettura software per l'esposizione di \ac{API} al di sopra del simulatore Alchemist,
