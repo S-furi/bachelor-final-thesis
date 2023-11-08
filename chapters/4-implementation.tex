@@ -187,7 +187,7 @@ l'invio è detto \textit{hot}, cioè che il flusso di dati viene spedito nonosta
 non voluta, poiché il server invierà sempre dati nel flusso anche se nessun client ha effettuato la sottoscrizione, essa risulta utile per tutti quei casi dove si può manifestare
 \textit{backpressure}, ovvero che il client non riesce a stare al passo con i dati inviati dal server. In questo contesto infatti, siccome gli elementi nel flusso vengono inviati
 sempre e in modo costante, il server non verrà bloccato da client che richiedono molto tempo per l'elaborazione dei dati stessi, lasciando il compito di gestire il \textit{backpressure}
-lato client, come descritto in \Cref{ssec:backpressure}.
+lato client, come descritto in \Cref{sec:future-works}.
 
 \paragraph{Client}
 Come già illustrato, il funzionamento del client è in linea con quanto riassunto all'interno dello schema UML in \Cref{fig:client-func}. Operazioni preliminare è lo \textit{schema introspection},
@@ -202,7 +202,7 @@ l'\texttt{id} del nodo, e ritorna solo alcuni dei campi dell'oggetto \texttt{Nod
 il numero di informazioni non necessarie che transitano in rete da client a server, evitando il fenomeno dell'\textit{over-fetching}.
 
 Una volta che lo schema e le operazioni GraphQL sono all'interno delle risorse di \textit{commonMain}, è possibile generare i sorgenti derivanti dallo schema e dalle operazioni definite,
-attraverso Apollo Kotlin. In questo modo è possibile già a tempo di compilazione avere un \textit{type checking} all'interno del codice Kotlin scritto lato client che faccia uso delle operazioni
+attraverso Apollo Kotlin\footnote{https://github.com/apollographql/apollo-kotlin}. In questo modo è possibile già a tempo di compilazione avere un \textit{type checking} all'interno del codice Kotlin scritto lato client che faccia uso delle operazioni
 definite. Infine, i sorgenti generati saranno utilizzati per poter far effettuare ad Apollo Kotlin, a runtime, il mapping tra oggetto definito nello schema e in arrivo dopo aver chiamato un'\ac{API},
 e il relativo oggetto generato in fase di compilazione.
 
