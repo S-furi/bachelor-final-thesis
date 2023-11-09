@@ -42,7 +42,7 @@ Possiamo quindi descrivere il server come segue:
     \item \textbf{SchemaModel}: modulo che contiene tutte le componenti del dominio di Alchemist adattate per la rappresentazione all'interno di uno schema GraphQL. Le motivazioni dietro 
         la necessità di questo modulo saranno illustrate in \Cref{ssec:model-adaptation}, e più in dettaglio in \Cref{ssec:surrogates}.
     \item \textbf{OutputMonitor}: interfaccia di Alchemist che mira al monitoraggio e all'osservazione sullo stato di una simulazione attraverso il design pattern \textit{Observer}~\cite{design-patterns}.
-    \item \textbf{EnvironmentSubscriptionMonitor}: Realizzazione dell'interfaccia \texttt{OutputMonitor}, la quale ha il compito di fornire una versione aggiornata dell'ambiente a tutte le operazioni
+    \item \textbf{EnvironmentSubscriptionMonitor}: Realizzazione dell'interfaccia \kotlin{OutputMonitor}, la quale ha il compito di fornire una versione aggiornata dell'ambiente a tutte le operazioni
         di tipo \textit{subscription} presenti nello schema. In questo modo viene implementato il trasferimento di dati in tempo reale ad ogni aggiornamento della simulazione. Il suo uso e funzionamento
         sono descritti in dettaglio all'interno della \Cref{ssec:apis-functioning}.
 \end{itemize}
@@ -51,7 +51,7 @@ Possiamo quindi descrivere il server come segue:
 \subsection{API GraphQL}\label{ssec:server-gql-apis}
 Come detto in precedenza, le API GraphQL costruite mirano a fornire una visuale ad alto livello di una o più simulazioni attraverso operazioni di tipo \textit{query},
 modificare lo stato della simulazione o elementi del dominio attraverso \textit{mutation} e sottoscriversi a cambiamenti degli stessi attraverso \textit{subscription}.
-L'esecuzione di queste operazioni deve avvenire in modo asincrono in modo tale da non bloccare il funzionamento del simulatore per la risoluzione delle richieste.
+L'esecuzione di queste operazioni deve avvenire in modo asincrono, affinché non venga interrotto il funzionamento del simulatore per la risoluzione delle richieste.
 
 A differenza dei sistemi \ac{REST}ful, i quali espongono i servizi attraverso differenti \textit{endpoint} per l'esecuzione di operazioni, GraphQL opera esponendo un
 singolo endpoint (tipicamente \texttt{/graphql}) sul quale inviare l'operazione GraphQL desiderata secondo lo schema:

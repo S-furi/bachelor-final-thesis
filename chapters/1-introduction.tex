@@ -3,10 +3,10 @@
 \section{Introduzione}\label{sec:background}
 Le \ac{API} rappresentano una componente fondamentale nei sistemi software moderni. Da decenni, esse sono state il cardine dell'interoperabilità tra differenti software e piattaforme, permettendo la
 creazione di ecosistemi software integrati e coesi, in cui applicazioni di diversa natura possono scambiare dati e funzionalità in modo efficace ed efficiente.
-Nell'architettura di un sistema software, le \ac{API} fungono da interfacce contrattuali definendo i metodi e i protocolli con cui le diverse componenti software interagiscono. Questo non solo 
-promuove la modularità e il riuso, ma anche la scalabilità dell'intero sistema; in particolare con l'evoluzione delle architetture distribuite il ruolo delle \ac{API} è ancora più cruciale.
-Esse non solo consentono la comunicazione tra diversi servizi, ma spesso rappresentano il principale punto di contatto e di interazione tra un servizio e i suoi consumatori, sia essi altre applicazioni
-o utenti finali.
+Nell'architettura di un sistema software, le \ac{API} fungono da interfacce contrattuali, definendo i metodi e i protocolli con cui le diverse componenti
+software interagiscono. Questa caratteristica promuove la modularità, il riuso e la scalabilità dell'intero sistema. In particolare, con l'evoluzione delle
+architetture distribuite, il ruolo delle \ac{API} diventa ancora più cruciale. Esse non solo consentono la comunicazione tra diversi servizi, ma spesso rappresentano il principale punto di
+contatto e di interazione tra un servizio e i suoi consumatori, sia essi altre applicazioni o utenti finali.
 
 In questo scenario si pone il progetto discusso nel presente documento: l'analisi e l'implementazione di un architettura software che interagisce con il simulatore Alchemist, esponendo funzionalità e
 servizi di controllo essenziali per lo sviluppo di applicativi attraverso le API progettate.
@@ -64,8 +64,8 @@ Diverse \textit{Incarnation} possono modellare universi completamente differenti
 \end{itemize}
 
 \subsection{Interazione coi Simulatori}\label{ssec:sim-interactions}
-Allo stato attuale, l'interazione con le simulazioni avviene principalmente mediante lo sviluppo di codice all'interno della \ac{JVM} che comunichi direttamente con il modello di Alchemist.
-Questo porta allo sviluppo di moduli aggiuntivi coerenti con l'architettura generale del sistema, ma è evidente come la loro implementazione non può astrarre al di la delle interfacce fornite
+L'interazione con le simulazioni avviene principalmente mediante lo sviluppo di codice all'interno della \ac{JVM} che comunichi direttamente con il modello di Alchemist.
+Questo porta allo sviluppo di moduli aggiuntivi coerenti con l'architettura generale del sistema, ma è evidente come la loro implementazione non può astrarre al di là delle interfacce fornite
 dal simulatore. Prendendo come esempio il modulo per la realizzazione di un interfaccia grafica, l'intero modulo è a conoscenza e deve adattarsi al dominio applicativo, implicandone 
 la profonda conoscenza e comprensione dell'interazione di tutte le componenti.
 

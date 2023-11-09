@@ -81,7 +81,7 @@ Le operazioni all'interno di GraphQL sono:
     \item \textbf{Subscription} per sottoscriversi ai cambiamenti di un dato, attraverso aggiornamenti in tempo reale (discussa in \Cref{ssec:real-time}).
 \end{itemize}
 Non esistendo un vincolo ad una specifica base di dati, per poter operare sui dati GraphQL necessita di lavorare su uno \textit{schema}, definito
-attraverso uno \ac{SDL} che descrive la struttura dei dati attraverso i loro tipi e campi all'interno della struttura. Grazie a ciò, ogni operazione
+attraverso uno \ac{SDL} che descrive la struttura dei dati attraverso i loro tipi e campi all'interno dello schema. Grazie a ciò, ogni operazione
 viene dapprima validata sullo schema, e successivamente eseguita sul server fornendo così un meccanismo di \textit{type safety} in grado di bloccare
 in anticipo richieste GraphQL malformate.
 
@@ -91,7 +91,7 @@ da un punto di vista implementativo, perché non richiede la definizione e manut
 quest'ultimo GraphQL è in grado di fornire meccanismi che prevengano il fenomeno di \textit{over-fetching}, del quale soffrono invece sistemi RESTful.
 Per quanto riguarda l'efficienza effettiva di questi sistemi, non è possibile determinare a priori uno sull'altro, poiché per quanto GraphQL riesca
 a privilegiare scenari dove la scarsa banda è notevole (e.g. applicazioni per dispositivi mobili, dispositivi IoT), in alcuni sistemi risulta
-più efficiente un architettura che possa sfruttare al meglio il \textit{caching} dei dati, tipico dei sistemi \ac{REST}~\cite{gql_vs_rest}.
+più efficiente un'architettura che possa sfruttare al meglio il \textit{caching} dei dati, tipico dei sistemi \ac{REST}~\cite{gql_vs_rest}.
 
 In sintesi, l'adozione di una delle due architetture dipende fortemente dalla natura dell'applicativo, rendendo necessaria la conoscenza
 dei pro e contro di un sistema maturo e largamente diffuso come REST, oppure un paradigma relativamente nuovo e ancora in via di sviluppo,
@@ -149,8 +149,8 @@ Kotlin mutliplatform può essere impiegato in molte applicazioni, ma prevalentem
     \item \textbf{Applicazioni Android, iOS e web}: in questo contesto, la logica dell'applicativo si sviluppa all'interno del modulo comune a tutte
         le piattaforme, mentre per esempio le specifiche implementazioni del front-end vengono delegate al relativo modulo. In questo modo, il codice
         specifico per ogni piattaforma viene ridotto notevolmente.
-    \item \textbf{Applicazioni Web Full-stack}: in questo caso i moduli previsti possono consistere, oltre al modulo comune, in un modulo \textit{Kotlin/JVM}
-        per quanto riguarda il server, mentre un modulo \textit{Kotlin/JS}. All'interno del modulo comune possono essere condivisi elementi del modello e
+    \item \textbf{Applicazioni Web Full-stack}: in questo caso i moduli previsti possono consistere, oltre al modulo comune, un modulo \textit{Kotlin/JVM}
+        per una componente server e un modulo \textit{Kotlin/JS} per delineare i comportamenti lato front-end. All'interno del modulo comune possono essere condivisi elementi del modello e
         logiche che possono essere condivisibili tra client e server.
     \item \textbf{Librerie Multiplatfom}: creando librerie con codice comune e implementazioni specifiche per le piattaforme, come JVM o web, è possibile
         utilizzarle come dipendenze in altri progetti multi piattaforma.
