@@ -154,7 +154,7 @@ Possiamo distinguere le seguenti componenti:
 \begin{itemize}
     \item \textbf{GraphQLClient}: client GraphQL in grado di stabilire una connessione con il server, ed effettuare su di esso \textit{query}, \textit{mutation} e \textit{subscription}.
         Per via delle varie componenti che possono essere aggiunte al client, come per esempio il modulo di \textit{WebSocket} per effettuare \textit{subscription}, la scelta del protocollo
-        di trasporto di GraphQL o l'aggiunta di un modulo di intercettamento dei pacchetti HTTP, il client GraphQL viene costruito mediante il pattern creazionale \textit{Builder}~\cite{design-patterns}.
+        di trasporto di GraphQL o l'aggiunta di un modulo di intercettamento dei pacchetti HTTP, il client GraphQL viene costruito mediante il pattern creazionale \textit{Factory}~\cite{design-patterns}.
         Questa componente è all'interno del \textit{source set} comune (\textit{commonMain}).
     \item \textbf{GeneratedModel}: modulo contenente il modello di Alchemist generato a partire dallo schema GraphQL esposto dal server, utilizzato da tutte le operazioni definite all'interno del client.
     \item \textbf{ConcentrationContentSurrogate}: modulo speciale per definire, attraverso surrogati, i contenuti complessi delle concentrazioni, definendone anche le strategie di serializzazione e
