@@ -32,7 +32,7 @@ Attraverso questo sistema software così costruito, è possibile operare su di e
 \begin{itemize}
     \item \textbf{N+1 \textit{problem}}: nei sistemi GraphQL si può verificare durante l'esecuzione di una \textit{query} che questa richieda una risorsa, e per ogni record
         restituito, viene effettuata un'ulteriore query per recuperare informazioni correlate, portando a un numero esponenziale di chiamate al sottosistema per il recupero dei dati,
-        provocando per una operazione, ulteriori $N$ query, causando ciò che viene appunto delineato $N+1$ \textit{problem}. All'interno di GraphQL Kotlin è possibile mitigare questa
+        provocando per una operazione, ulteriori $N$ query, causando ciò che viene appunto definito $N+1$ \textit{problem}. All'interno di GraphQL Kotlin è possibile mitigare questa
         problematica mediante appositi \textit{data loader}, i quali permettono di effettuare \textit{batching di operazioni} e offrire inoltre un livello di \textit{caching} per le
         operazioni più frequenti. Questo può quindi comportare un ampio beneficio in termini di prestazioni generali del sottosistema, sia in termini di latenza di risposte,
         sia per quanto riguarda l'\textit{overhead} generale nella risoluzione delle operazioni.

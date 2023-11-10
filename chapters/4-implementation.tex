@@ -4,7 +4,7 @@
 \section{Superamento delle specifiche GraphQL}\label{sec:overcoming-gql-specs}
 Come illustrato nella sezione \Cref{ssec:server-gql-apis}, l'approccio desiderabile di sviluppo del codice per lo schema GraphQL è un approccio di
 tipo \textit{code-first}. La libreria GraphQL Kotlin \footnote{https://opensource.expediagroup.com/graphql-kotlin/} offre proprio questo tipo di
-approccio, permettendo di astrarre il più possibile dalla implementazione dello schema. Questo però comporta inevitabilmente un conflitto tra il modello
+strategia, permettendo di astrarre il più possibile dalla implementazione dello schema. Questo però comporta inevitabilmente un conflitto tra il modello
 di Alchemist e le specifiche GraphQL, le quali non sono in grado di fornire una rappresentazione uno a uno del modello.
 In questo contesto nasce la necessità di definire dei surrogati per adattare il modello di Alchemist ad uno schema che sia conforme alle specifiche,
 e allo stesso tempo garantire la genericità dipendente dalle diverse \textit{incarnation}.
@@ -26,9 +26,9 @@ allo schema GraphQL. Di seguito sono riportate le trasformazioni tra tipi di Kot
     \item \textbf{Input}: ogni classe che figura come parametro all'interno di un metodo (se pubblico e non annotato con \kotlin{@GraphQLIgnore}) viene
         interpretato all'interno dello schema GraphQL come di tipo \texttt{input}. Un tipo \texttt{input} può contenere a sua volta dei campi,
         ma non può estendere un'interfaccia.
-    \item \textbf{Interfacce}: tutte le interfacce definite tali all'interno del codice Kotlin, vengono interpretate come tipo \texttt{interface} all'interno
-        dello schema GraphQL. Un'interfaccia si compone di campi all'interno dello schema, può figurare come valore di ritorno di un metodo o di una proprietà
-        ma \textit{non} può essere un parametro di un metodo.
+    \item \textbf{Interfacce, Classi Astratte e Classi \textit{Sealed}}: tutte le interfacce, classi astratte e \textit{sealed} definite tali all'interno del codice Kotlin,
+        vengono interpretate come tipo \texttt{interface} all'interno dello schema GraphQL. Un'interfaccia si compone di campi all'interno dello schema, può figurare come
+        valore di ritorno di un metodo o di una proprietà ma \textit{non} può essere un parametro di un metodo.
 \end{itemize}
 Durante la fase di generazione dello schema a partire dal codice Kotlin quindi, viene stabilita la corretta relazione tra tipo Kotlin e tipo GraphQL, e
 in caso in caso di incompatibilità la generazione dello schema fallisce. Se considerassimo per esempio il metodo \kotlin{Node<T>.getConcentration(m: Molecule): T},
@@ -50,7 +50,7 @@ che prevedono l'invio di un surrogato dal client infatti, non sono presenti alcu
 A questo punto quindi, per tutte le operazioni che prevedono l'impiego di un surrogato in input (principalmente
 \textit{mutation}) è necessario definire una nuova classe istanziabile dal client e presente nello schema GraphQL con il tipo \texttt{input}. 
 In questo modo il client è in grado di definire surrogati e utilizzarli come input di operazioni, e riprendendo l'esempio di prima, il metodo
-per recuperare una concentrazione data una molecola sarà mappato in termini di surrogati in \kotlin{NodeSurrogate<T>.getConcentration(MoleculeInput): String},
+per recuperare una concentrazione data una molecola sarà mappato in termini di surrogati in \kotlin{NodeSurrogate<T>.getConcentration(m: MoleculeInput): String},
 dove \kotlin{MoleculeInput} è l'oggetto in input istanziabile dal client. A questo punto sarà il server a definire le strategie di conversione
 tra oggetti di tipo \texttt{input} e il l'oggetto Alchemist corrispondente.
 
@@ -136,7 +136,7 @@ la documentazione relativa all'operazione chiamata all'interno dello Schema Grap
 
 \section{Funzionamento}\label{sec:functioning}
 \subsection{Web Server}\label{ssec:web-server}
-Il servizio di \ac{API} è reso disponibile all'esterno attraverso un web server implementato attraverso \textit{Ktor} \footnote{https://ktor.io/}. Questa libreria
+Il servizio di \ac{API} è reso disponibile all'esterno attraverso un web server implementato mediante l'uso di \textit{Ktor} \footnote{https://ktor.io/}. Questa libreria
 offre un \textit{framework} leggero e altamente configurabile per al creazione di servizi web e, più in generale, di applicazioni \textit{backend}. Generalmente un
 servizio Ktor si compone di un insieme di moduli, ognuno dei quali solitamente ricopre ruoli specifici per la messa in funzione di un servizio web. Il \textit{backend}
 per l'esposizione di \ac{API} GraphQL comprende 2 moduli essenziali: un modulo di \textit{routing} e un modulo per la configurazione di GraphQL.
@@ -155,8 +155,8 @@ al di sopra dello schema, e in caso di esito positivo, provvedere al recupero de
 risiede il cuore dell'architettura del server, le cui funzioni stanno alla base del successo dell'impiego delle \ac{API} GraphQL, come esposto nella sezione seguente.
 
 \subsection{Esecuzione e Interrogazione delle API}\label{ssec:apis-functioning}
-Le sezioni precedenti hanno illustrato il processo di ideazione, design e implementazione. In questa sezione verrà coperto il funzionamento generale dell'intera architettura,
-sia lato server, sia l'interrogazione da parte del client e l'interpretazione dei risultati ottenuti.
+Le sezioni precedenti hanno illustrato il processo di ideazione, design e implementazione del sistema software. In questa sezione verrà coperto il funzionamento generale dell'intera
+architettura, sia lato server, sia l'interrogazione da parte del client e l'interpretazione dei risultati ottenuti.
 
 \paragraph{Server}
 Procedendo attraverso un approccio \textit{code-first}, il server prima di essere messo in funzione effettua un'operazione di generazione dello schema, grazie ad una componente
