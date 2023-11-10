@@ -35,7 +35,7 @@ Il diagramma UML in \Cref{fig:server-uml} rappresenta l'architettura della compo
 %----------------------------------------%
 Possiamo quindi descrivere il server come segue:
 \begin{itemize}
-    \item \textbf{GraphQLServer}: è la componente principale dell'intera architettura, si occupa principalmente di esporre un insieme di API GraphQL all'interno di una simulazione.
+    \item \textbf{GraphQLServer}: è la componente principale dell'intera architettura, si occupa di esporre un insieme di API GraphQL all'interno di una simulazione.
         Questa componente mantiene quindi un riferimento alla simulazione corrente, attraverso la quale produce le istanze delle operazioni all'interno dello schema.
     \item \textbf{SchemaOperations}: è uno dei due moduli che contribuiscono alla creazione dello schema GraphQL. Al suo interno risiedono tutte le operazioni dei tre tipi \textit{query},
         \textit{mutation} e \textit{subscription}.
@@ -123,7 +123,7 @@ descritto in \Cref{ssec:alchemist}.
 
 L'elemento fondamentale del dominio è \texttt{EnvironmentSurrogate}, il quale mantiene al suo interno i nodi, associandogli la loro posizione, i vicinati composti dai nodi
 e gli eventuali \texttt{LayerSurrogate}. Questi ultimi sono in grado di calcolare la concentrazione in un determinato punto dello spazio che occupano. I nodi, rappresentati
-da \texttt{NodeSurrogate} e identificati da un \texttt{id} univoco, hanno al loro interno un insieme di molecule a cui è associata una concentrazione, un insieme di proprietà
+da \texttt{NodeSurrogate} e identificati da un \texttt{id} univoco, hanno al loro interno un insieme di molecole a cui è associata una concentrazione, un insieme di proprietà
 del nodo stesso e mantengono un riferimento alle reazioni a lui associate, descritte da \texttt{ReactionSurrogte}. Un insieme di nodi forma un \texttt{NeighborhoodSurrogate},
 il quale è caratterizzato da un nodo che ne rappresenta il centro. La posizione di un nodo nello spazio è rappresentata attraverso l'interfaccia \texttt{PositionSurorgate},
 la quale può essere del tipo specifico \texttt{Position2DSurrogate}, o nel caso più generico, una \texttt{GenericPositionSurrogate}.
