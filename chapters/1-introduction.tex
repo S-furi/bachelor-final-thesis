@@ -14,11 +14,38 @@ Tramite questo nuovo modulo, si mira a fornire un accesso standardizzato ed effi
 delle sue funzionalità.
 
 \section{Contesto}\label{sec:context}
-\subsection{Simulazione}\label{ssec:alchemist}
-Alchemist~\cite{alchemist} è un simulatore stocastico general-purpose, estensibile ed open-source sviluppato dall'Università di Bologna. Permette la simulazione di scenari relativi al
-\textit{pervasive}, \textit{aggregate} e \textit{nature-inspired computing}.
+La crescente integrazione di dispositivi di comunicazioni avanzati, come laptop, smartphone o sensori di \ac{IoT} all'interno
+di ogni aspetto della vita quotidiana, ha provocato lo sviluppo di un modello di computazione definito come \textit{Pervasive Computing}.
+In questo scenario, le infrastrutture software accrescono in complessità per via della decentralizzazione delle unità di elaborazione, in concomitanza
+con la natura eterogenea dei dispositivi stessi. La programmazione pervasiva è quindi concepita come risposta alle sfide presentate da tali scenari,
+pensata per gestire e ridurre la complessità di sistemi che richiedono adattabilità dinamica al contesto e coordinazione autonoma, provvedendo allo
+sviluppo di formalismi e strategie per l'implementazione di ambienti all'interno dei quali un insieme di agenti provvisti di un certo grado di autonomia,
+si coordinano per produrre, consumare e scambiare informazioni all'interno del sistema pervasivo.
 
-\paragraph{Meta-modello} Gli elementi principali che compongono Alchemist sono\footnote{https://alchemistsimulator.github.io/}:
+\subsection{Simulazione}\label{ssec:simulation}
+La difficoltà principale all'interno di questo tipo di sistemi, risiede nella definizione di approcci per la gestione della coordinazione, auto-adattamento
+e autogestione degli agenti distribuiti nello spazio dell'ambiente. 
+La simulazione emerge come uno strumento indispensabile per affrontare queste sfide in modo controllato ed efficiente. Essa consente di modellare e testare
+le dinamiche degli agenti in una varietà di scenari, valutando il loro comportamento in risposta a diverse condizioni ambientali. Questo approccio
+preventivo è fondamentale per identificare criticità, ottimizzare le strategie di coordinazione e affinare i meccanismi di auto-adattamento.
+
+\subsection{Alchemist}\label{ssec:alchemist}
+Alchemist~\cite{alchemist} è un simulatore stocastico general-purpose, estensibile ed open-source sviluppato dall'Università di Bologna, progettato
+per affrontare le complessità della programmazione pervasiva. Questo simulatore si focalizza sulla necessità di definire meccanismi avanzati per modellare
+interazioni tra agenti autonomi in ambienti dinamici e distribuiti. La sua architettura, composta da un insieme di nodi comunicanti, ciascuno
+potenzialmente eterogeneo, consente la simulazione di scenari \textit{pervasive}, \textit{aggregate} e \textit{nature-inspired computing}.
+
+Alchemist offre un ambiente ampiamente estensibile, dove le interazioni tra agenti sono esposte attraverso reazioni ispirate alla chimica. Queste reazioni
+consentono la definizione di comportamenti autonomi degli agenti all'interno del sistema, riflettendo fedelmente la dinamicità e la complessità intrinseche
+dei contesti pervasivi. La flessibilità di Alchemist si estende alla definizione di sofisticate regole comportamentali all'interno dell'ambiente,
+fornendo agli sviluppatori uno strumento potente per esplorare e sperimentare con strategie di coordinazione, auto-adattamento e autogestione nel contesto di
+sistemi pervasivi.
+
+\paragraph{Meta-modello} Il meta-modello di Alchemist rappresenta il fondamento concettuale che guida la progettazione e l'implementazione delle simulazioni. Questo
+schema astratto definisce gli elementi chiave e le relazioni che costituiscono la struttura fondamentale del simulatore, offrendo una base teorica solida per
+la modellazione e la simulazione di scenari complessi.
+
+Gli elementi principali che compongono il modello di Alchemist sono\footnote{https://alchemistsimulator.github.io/}:
 \begin{itemize}
     \item \textbf{Molecule}: denominazione assegnata ad un dato specifico.
     \item \textbf{Concentration}: il valore assegnato ad una particolare molecola.
@@ -62,6 +89,9 @@ Diverse \textit{Incarnation} possono modellare universi completamente differenti
     \item \textbf{Biochemistry Incarnation}\footnote{https://alchemistsimulator.github.io/explanation/biochemistry/}
     \item \textbf{SCAFI Incarnation}~\cite{CASADEI2022101248}
 \end{itemize}
+
+\paragraph{Applicazioni di Alchemist}
+Esempio qui
 
 \subsection{Interazione coi Simulatori}\label{ssec:sim-interactions}
 L'interazione con le simulazioni avviene principalmente mediante lo sviluppo di codice all'interno della \ac{JVM} che comunichi direttamente con il modello di Alchemist.
