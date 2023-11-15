@@ -127,7 +127,7 @@ il server Alchemist, il quale dovrebbe essere in grado di rispondere in maniera 
 per ottenere dati in tempo reale riguardo gli elementi del dominio.
 
 %----------------------------------------%
-\centerimage{figures/server-subscription.png}{Richiesta dati in tempo reale sfruttando connessioni persistenti.}{server-sub}{0.4}
+\centerimage{figures/server-subscription.png}{Richiesta dati in tempo reale sfruttando connessioni persistenti.}{server-sub}{0.5}
 %----------------------------------------%
 
 \subsection{Multiplatform}\label{sec:multiplatform}
@@ -159,7 +159,7 @@ Kotlin mutliplatform può essere impiegato in molte applicazioni, ma prevalentem
 \section{Analisi e Modello del Dominio}\label{sec:domain-model}
 L'architettura software proposta dovrà operare al di sopra del simulatore Alchemist, il quale modello è stato ampiamente esplorato all'interno di \Cref{ssec:alchemist}.
 In questo contesto, è quindi dapprima necessario fornire un livello comunicativo tra il modello del dominio di Alchemist,
-e le componenti del sistema server, agendo quindi come \textit{controller} all'interno del paradigma architetturale \ac{MVC}.
+e le componenti del sistema server, agendo quindi come \textit{controller} all'interno del paradigma architetturale \ac{MVC}~\cite{design-patterns}.
 Il server sarà quindi responsabile dell'accesso e recupero dati nel contesto
 di una simulazione, e allo stesso tempo fornire un punto di accesso per le comunicazioni con i client. Queste comunicazioni devono permette il transito sia di informazioni, sia di comandi specifici che il
 server deve far attuare all'interno di  una simulazione. D'altra parte, il client deve essere in grado di stabilire e inviare correttamente questo tipo di operazioni al server.
