@@ -24,10 +24,33 @@ si coordinano per produrre, consumare e scambiare informazioni all'interno del s
 
 \subsection{Simulazione}\label{ssec:simulation}
 La difficoltà principale all'interno di questo tipo di sistemi, risiede nella definizione di approcci per la gestione della coordinazione, auto-adattamento
-e autogestione degli agenti distribuiti nello spazio dell'ambiente. 
+e autogestione degli agenti distribuiti nello spazio dell'ambiente.
 La simulazione emerge come uno strumento indispensabile per affrontare queste sfide in modo controllato ed efficiente. Essa consente di modellare e testare
-le dinamiche degli agenti in una varietà di scenari, valutando il loro comportamento in risposta a diverse condizioni ambientali. Questo approccio
-preventivo è fondamentale per identificare criticità, ottimizzare le strategie di coordinazione e affinare i meccanismi di auto-adattamento.
+le dinamiche degli agenti in una varietà di scenari, valutando il loro comportamento in risposta a diverse condizioni ambientali.
+
+Nella sua connotazione più generale, una \textit{simulazione} è una riproduzione del modo di operare di un sistema o un processo del mondo reale, in un
+arco temporale discreto~\cite{discrete-event-simulation}.
+La rappresentazione del sistema, sia essa una rappresentazione matematica, descrittiva o logica, definisce il \textit{modello}
+della simulazione. Il sistema può assumere un insieme finito di \textit{stati}, ovvero un insieme di variabili contenenti
+tutte le informazioni necessarie alla descrizione del sistema in un determinato momento. Questo quindi definisce lo stato di una simulazione come una
+funzione legata al tempo, il quale viene rappresentato da una variabile definita \textit{clock}. Il modello così costruito permette la rappresentazione
+delle \textit{entità} che compongono il sistema, le quali ricoprono il ruolo di oggetti e componenti (e.g. prodotti, dispositivi, parti, \dots)
+alle quali possono essere associati uno o più attributi. Durante l'esecuzione della simulazione, la riproduzione del sistema attraverso le entità
+viene aggiornata ad ogni passo dell'esecuzione in base ad un insieme di \textit{attività}. Queste sono caratterizzate da una durata finita
+nel tempo, la quale può essere prestabilita o casuale. In generale però, la terminazione
+di un'attività e la sua durata possono dipendere da un insieme articolato di \textit{condizioni} sullo stato del sistema.
+
+L'insieme di questi componenti può formare una tipologia di modello definito come \textit{Discrete-Event Simulation model} (DES), all'interno del quale
+lo stato del sistema subisce un cambiamento solo all'interno di un certo insieme di punti temporali denominati \textit{event times}. In questo tipo
+di simulazione quindi il tempo viene incrementato secondo regole prestabilite, e lo stato della simulazione non può cambiare tra un \textit{event point}
+e il suo successivo. Al cambiamento della simulazione all'interno di un \textit{event point}, viene generato ciò che viene definito \textit{snapshot} della
+simulazione corrente, il quale verrà modificato solo al prossimo \textit{event point}. In questo modo la simulazione procede di \textit{snapshot} in \textit{snapshot}
+fino a quando non termina.
+
+Durante il processo di esecuzione della simulazione, è possibile effettuare osservazioni del sistema simulato, e collezionare misurazioni d'interesse.
+Mediante queste misurazioni è possibile per esempio effettuare una valutazione sulle prestazioni generali del modello, oppure estrapolare dati
+in grado di fornire una maggiore comprensione dei fenomeni e comportamenti che regolano il sistema simulato, fornendo la possibilità di analizzare,
+sperimentare ed ottimizzare un insieme di modelli che possano interagire con il sistema stesso, utilizzando la simulazione come un ambiente di sviluppo e testing.
 
 \subsection{Alchemist}\label{ssec:alchemist}
 Alchemist~\cite{alchemist} è un simulatore stocastico general-purpose, estensibile ed open-source sviluppato dall'Università di Bologna, progettato
