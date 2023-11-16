@@ -39,7 +39,7 @@ Alchemist offre un ambiente ampiamente estensibile, dove le interazioni tra agen
 consentono la definizione di comportamenti autonomi degli agenti all'interno del sistema, riflettendo fedelmente la dinamicità e la complessità intrinseche
 dei contesti pervasivi. La flessibilità di Alchemist si estende alla definizione di sofisticate regole comportamentali all'interno dell'ambiente,
 fornendo agli sviluppatori uno strumento potente per esplorare e sperimentare con strategie di coordinazione, auto-adattamento e autogestione nel contesto di
-sistemi pervasivi.
+sistemi pervasivi e multi-agente.
 
 \paragraph{Meta-modello} Il meta-modello di Alchemist rappresenta il fondamento concettuale che guida la progettazione e l'implementazione delle simulazioni. Questo
 schema astratto definisce gli elementi chiave e le relazioni che costituiscono la struttura fondamentale del simulatore, offrendo una base teorica solida per
@@ -100,7 +100,21 @@ l'impiego di pluviometri disposti in una città, comunicanti tra loro. Lo scopo 
 L'obiettivo è sfruttare il raggruppamento di aree simili per ottenere un tracciamento più accurato del fenomeno, comprendere la sua struttura spaziale e
 utilizzare queste informazioni per adottare una possibile contromisura da adottare nelle zone definite a più alto rischio.
 
-Aggiunta di un altra applicazione qui.
+La possibilità di estensione di Alchemist può portare allo sviluppo di ulteriori moduli in grado di modellare scenari differenti
+da quelli per cui è nato, come dimostrato in ``\textit{A Collective Adaptive Approach to Decentralised k-Coverage in Multi-robot Systems}''~\cite{OMOkC}.
+L'articolo tratta della problematica del \textit{Online Multi-Object k-Coverage problem}(OMOkC) dove un insieme di robot mobili
+devono rilevare un obiettivo in movimento attraverso $k$ punti di vista, capaci di coordinarsi in maniera possibilmente decentralizzata
+e scalabile. L'obiettivo non consiste nel definire nuovi algoritmi risolutivi, ma applicare paradigmi di \textit{aggregate computing}
+in grado di stabilire direttamente il comportamento globale dell'intero complesso di dispositivi. In questo contesto è stato
+scelto tra tutte le alternative il simulatore Alchemist, poiché anche se non disponendo di strumenti per la modellazione di
+robot dotati di sensori visivi, esso offre un potente motore a supporto di scenari di \textit{aggregate computing} (specialmente
+in contesti che prevedono un numero molto elevato di dispositivi), in combinazione con la sua estensibilità e personalizzazione del modello.
+Grazie a queste caratteristiche, sono stati integrati all'interno di Alchemist due ulteriori moduli in grado di estenderne
+le capacità, in particolare essi si occupano di 
+\begin{enumerate*}[label=(\roman*)]
+    \item modellare le interazioni fisiche tra oggetti, arricchendo il concetto di nodo mediante la definizione di area di percezione (i.e. campo visivo) e
+    \item fornire supporto alle azioni dei robot come il loro controllo, movimento e rotazione della loro telecamera.
+\end{enumerate*}
 
 \subsection{Interazione coi Simulatori}\label{ssec:sim-interactions}
 L'interazione con le simulazioni avviene principalmente mediante lo sviluppo di codice all'interno della \ac{JVM} che comunichi direttamente con il modello di Alchemist.
